@@ -1,0 +1,239 @@
+@import 'https://fonts.googleapis.com/css?family=Raleway';
+:root {
+    --primary-color: #white;
+    --clock-face: #f8f8f8;
+    --clock-border: #222;
+    --numbers-color: #333;
+    --hour-hand: #333;
+    --minute-hand: #555;
+    --second-hand: #e74c3c;
+    --shadow-color: rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] {
+    --primary-color: #121212;
+    --clock-face: #222;
+    --clock-border: #444;
+    --numbers-color: #f8f8f8;
+    --hour-hand: #f8f8f8;
+    --minute-hand: #ccc;
+    --second-hand: #ff5e5e;
+    --shadow-color: rgba(255, 255, 255, 0.1);
+}
+
+* {
+    outline: none;
+    user-select: none;
+    box-sizing: border-box;
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background: var(--primary-color);
+    color: var(--numbers-color);
+    font-family: "Raleway", "Microsoft JhengHei", Arial, sans-serif;
+    margin: 0;
+    transition: background 0.5s ease;
+}
+
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 100;
+    background: rgba(255, 255, 255, 0.2);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.3);
+}
+
+.clock {
+    width: 300px;
+    height: 300px;
+    border: 15px solid var(--clock-border);
+    border-radius: 50%;
+    position: relative;
+    padding: 20px;
+    box-shadow: 
+        0 0 25px var(--shadow-color),
+        inset 0 0 15px var(--shadow-color);
+    background: var(--clock-face);
+    transition: all 0.5s ease;
+}
+
+@media (max-width: 400px) {
+    .clock {
+        width: 250px;
+        height: 250px;
+        border-width: 10px;
+    }
+}
+
+.clock .clock-face {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+/* Centro del reloj */
+.center-circle {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 12px;
+    height: 12px;
+    background: var(--second-hand);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 10;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+/* Manecillas */
+.clock .clock-face .hand {
+    position: absolute;
+    top: 50%;
+    transform-origin: 100%;
+    transform: rotate(90deg);
+    transition: all 0.05s cubic-bezier(0.1, 2.7, 0.58, 1);
+    border-radius: 5px;
+}
+
+.clock .clock-face .hour-hand {
+    height: 8px;
+    background: var(--hour-hand);
+    width: 35%;
+    left: 15%;
+    z-index: 3;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+.clock .clock-face .minute-hand {
+    height: 5px;
+    background: var(--minute-hand);
+    width: 45%;
+    left: 5%;
+    z-index: 2;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+}
+
+.clock .clock-face .second-hand {
+    height: 2px;
+    background: var(--second-hand);
+    width: 45%;
+    left: 5%;
+    z-index: 1;
+    box-shadow: 0 0 3px rgba(0, 0, 0, 0.2);
+}
+
+/* Fechador */
+.date-display {
+  position: absolute;
+  top: 65%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--second-hand);
+  color: white;
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+  z-index: 5;
+  min-width: 100px;
+  text-align: center;
+  opacity: 0.9;
+  transition: all 0.3s ease;
+}
+
+[data-theme="dark"] .date-display {
+  background: var(--clock-border);
+  color: var(--clock-face);
+}
+
+@media (max-width: 400px) {
+  .date-display {
+      font-size: 0.8rem;
+      min-width: 80px;
+      padding: 3px 8px;
+      top: 63%;
+  }
+}
+
+/* Números del reloj */
+.numbers-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.number {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    transform: rotate(var(--rotation));
+    padding-top: 20px;
+    color: var(--numbers-color);
+}
+
+.number::after {
+    content: attr(data-number);
+    display: inline-block;
+    transform: rotate(calc(-1 * var(--rotation)));
+}
+
+@media (max-width: 400px) {
+    .number {
+        font-size: 1rem;
+    }
+}
+
+/* Marcas de minutos */
+.minute-marks {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.minute-mark {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    transform: rotate(var(--rotation));
+}
+
+.minute-mark::after {
+    content: '';
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    width: 2px;
+    height: 8px;
+    background: var(--numbers-color);
+    transform: translateX(-50%);
+    opacity: 0.7;
+}
+
+/* Marcas más grandes para las horas */
+.minute-mark[data-hour-mark]::after {
+    width: 3px;
+    height: 12px;
+    opacity: 0.9;
+}
