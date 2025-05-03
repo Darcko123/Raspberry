@@ -1,5 +1,7 @@
+# Tutorial para instalación y uso de OpenCV en C++ para Raspberry
 El siguiente documento describe el proceso para la desacarga y compilación de OpenCV tanto para *Raspberry Pi 5* cómo para *Raspberry Zero 2W*
 
+- [Tutorial para instalación y uso de OpenCV en C++ para Raspberry](#tutorial-para-instalación-y-uso-de-opencv-en-c-para-raspberry)
 - [📸 Instalación de OpenCV 4.9.0 en Raspberry Pi 5 (C++)](#-instalación-de-opencv-490-en-raspberry-pi-5-c)
   - [🔧 Requisitos Previos](#-requisitos-previos)
   - [1️⃣ Actualizar el Sistema y Dependencias](#1️⃣-actualizar-el-sistema-y-dependencias)
