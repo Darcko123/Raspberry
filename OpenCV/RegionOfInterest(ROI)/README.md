@@ -1,4 +1,5 @@
 # Ejemplo de Regiones de Interés (ROI) en OpenCV
+![OpenCV Logo](https://opencv.org/wp-content/uploads/2022/05/logo.png)
 
 Este repositorio contiene un ejemplo completo de cómo trabajar con Regiones de Interés (ROI) en OpenCV usando C++. El código demuestra cuatro métodos diferentes para definir y extraer ROI de una imagen.
 

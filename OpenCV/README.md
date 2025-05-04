@@ -1,4 +1,5 @@
 # Tutorial para instalación y uso de OpenCV en C++ para Raspberry
+![OpenCV Logo](https://opencv.org/wp-content/uploads/2022/05/logo.png)
 El siguiente documento describe el proceso para la desacarga y compilación de OpenCV tanto para *Raspberry Pi 5* cómo para *Raspberry Zero 2W*
 
 - [Tutorial para instalación y uso de OpenCV en C++ para Raspberry](#tutorial-para-instalación-y-uso-de-opencv-en-c-para-raspberry)
@@ -12,7 +13,7 @@ El siguiente documento describe el proceso para la desacarga y compilación de O
   - [✅ Prueba de Verificación en C++](#-prueba-de-verificación-en-c)
   - [🧱 Crear Archivo CMakeLists.txtCMakeLists.txt](#-crear-archivo-cmakeliststxtcmakeliststxt)
   - [⚙️ Compilar y Ejecutar](#️-compilar-y-ejecutar)
-- [📸 Instalación de OpenCV 4.5.0 en Raspberry Zero 2W (C++)](#-instalación-de-opencv-450-en-raspberry-zero-2w-c)
+- [📸 Instalación de OpenCV 4.7.0 en Raspberry Zero 2W (C++)](#-instalación-de-opencv-470-en-raspberry-zero-2w-c)
   - [🔧 Requisitos Previos](#-requisitos-previos-1)
   - [1️⃣ Actualizar el Sistema y Dependencias](#1️⃣-actualizar-el-sistema-y-dependencias-1)
   - [2️⃣ Descargar OpenCV y OpenCV Contrib](#2️⃣-descargar-opencv-y-opencv-contrib-1)
@@ -150,7 +151,7 @@ Si la instalación fue exitosa, verá en consola algo como:
 OpenCV version: 4.9.0
 ```
 
-# 📸 Instalación de OpenCV 4.5.0 en Raspberry Zero 2W (C++)
+# 📸 Instalación de OpenCV 4.7.0 en Raspberry Zero 2W (C++)
 Este tutorial describe paso a paso cómo instalar y compilar OpenCV 4.7.0 en una Raspberry Zero 2W, así como ejecutar una prueba en C++ para verificar su correcta instalación.
 
 ## 🔧 Requisitos Previos
