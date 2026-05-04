@@ -3,7 +3,7 @@
 
 Este repositorio contiene un ejemplo completo de cómo trabajar con Regiones de Interés (ROI) en OpenCV usando C++. El código demuestra cuatro métodos diferentes para definir y extraer ROI de una imagen.
 
-## 📌 Características principales
+## Características principales
 - Selección manual de ROI interactiva
 - Definición de ROI poligonal (trapecio)
 - Extracción de ROI rectangular
@@ -11,7 +11,7 @@ Este repositorio contiene un ejemplo completo de cómo trabajar con Regiones de 
 - Generación de imágenes de resultado para cada método
 - Código bien comentado y estructurado
 
-## 🚀 Cómo ejecutar
+## Cómo ejecutar
 1. Copiar los archivos build.sh y CMakeLists.txt
    ### build.sh
    ```bash
@@ -64,14 +64,14 @@ El programa contiene cuatro métodos principales para trabajar con ROI:
 3. ROI Rectangular: Extrae un rectángulo en posición y tamaño específicos.
 4. ROI Circular: Crea una región circular centrada en la imagen.
 
-## 📸 Resultados esperados
+## Resultados esperados
 El programa generará cuatro archivos de imagen:
 1. _roi_image_target.jpg_ - ROI seleccionada manualmente
 2. _roi_image_Polygon.jpg_ - ROI poligonal (trapecio)
 3. _roi_image_Rectangular.jpg_ - ROI rectangular
 4. _roi_image_Circular.jpg_ - ROI circular
 
-## 🖥️ Uso interactivo
+## Uso interactivo
 1. Al ejecutar, primero se mostrará la imagen completa.
 2. Para la ROI manual:
     - Selecciona un área rectangular con el mouse
@@ -81,7 +81,7 @@ El programa generará cuatro archivos de imagen:
 4. Presiona cualquier tecla para avanzar entre resultados.
 5. Presiona ESC para salir del programa.
    
-## 📚 Recursos de aprendizaje
+## Recursos de aprendizaje
 - [Documentación oficial de OpenCV](https://docs.opencv.org/4.x/)
 - [Tutoriales de OpenCV](https://docs.opencv.org/4.x/d9/df8/tutorial_root.html)
 - [Conceptos básicos de ROI](https://learnopencv.com/how-to-select-a-bounding-box-roi-in-opencv-cpp-python/)

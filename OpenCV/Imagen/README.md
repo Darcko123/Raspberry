@@ -1,15 +1,16 @@
 # Ejemplo de Carga de Imagen en OpenCV
+
 ![OpenCV Logo](https://opencv.org/wp-content/uploads/2022/05/logo.png)
 
 Este repositorio contiene un ejemplo sencillo de cómo cargar una imagen utilizando la librería OpenCV en C++. El código muestra cómo leer una imagen desde un archivo y verificar si la carga fue exitosa.
 
-## 📌 Características principales
+## Características principales
 - Carga de imágenes utilizando la función `imread` de OpenCV.
 - Verificación de la correcta carga de la imagen con mensajes de error descriptivos.
 - Visualización de la imagen cargada en una ventana.
 - Código bien comentado y fácil de entender.
 
-## 🚀 Cómo ejecutar
+## Cómo ejecutar
 1. Copiar los archivos `build.sh` y `CMakeLists.txt` al mismo directorio que el archivo fuente (`.cpp`).
     ### build.sh
     ```bash
@@ -67,7 +68,7 @@ El programa realiza las siguientes acciones principales:
 - **Muestra la imagen:** Si la carga es exitosa, la función `imshow()` muestra la imagen en una ventana con el título "Imagen avatares".
 - **Espera una pulsación de tecla:** `waitKey(0)` detiene la ejecución del programa hasta que se presiona cualquier tecla, cerrando así la ventana de la imagen.
 
-## 📚 Recursos de aprendizaje
+## Recursos de aprendizaje
 - [Documentación oficial de OpenCV - Función imread](https://docs.opencv.org/4.x/d4/da8/group__imgcodecs.html)
 - [Documentación oficial de OpenCV - Función imshow](https://docs.opencv.org/4.x/d7/dfc/group__highgui.html#ga453d42fe4cb60e5723281a89973ee563)
 - [Documentación oficial de OpenCV - Función waitKey](https://docs.opencv.org/4.x/d7/dfc/group__highgui.html#ga5628525ad33f52eab17feebcfba38bd7)

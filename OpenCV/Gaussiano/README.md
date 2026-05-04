@@ -1,15 +1,16 @@
 # Ejemplo de Filtro RGB en OpenCV
+
 ![OpenCV Logo](https://opencv.org/wp-content/uploads/2022/05/logo.png)
 
 Este repositorio contiene un ejemplo de cómo aplicar un filtro Gaussiano a una imagen utilizando la librería OpenCV en C++. El filtro Gaussiano es una técnica de suavizado que reduce el ruido y los detalles finos de una imagen, preservando mejor los bordes que otros métodos de suavizado.
 
-## 📌 Características principales
+## Características principales
 - Carga de una imagen utilizando la función `imread` de OpenCV.
 - Aplicación de un filtro Gaussiano utilizando la función `GaussianBlur` de OpenCV.
 - Visualización de la imagen original y la imagen filtrada.
 - Código bien comentado y estructurado.
 
-## 🚀 Cómo ejecutar
+## Cómo ejecutar
 1. Copiar los archivos `build.sh` y `CMakeLists.txt` al mismo directorio que el archivo fuente (`.cpp`).
     ### build.sh
     ```bash
@@ -70,19 +71,19 @@ El programa realiza las siguientes acciones principales:
   - Muestra la imagen filtrada en una ventana llamada "Filtro Gaussiano - Suavizado de Imagen".
 - **Espera la pulsación de una tecla:** El programa espera a que el usuario presione una tecla para finalizar y cerrar las ventanas.
   
-## 📸 Resultados esperados
+## Resultados esperados
 Al ejecutar el programa, se mostrarán dos ventanas:
   - "Imagen Original": La imagen cargada desde el archivo.
 
   - "Filtro Gaussiano - Suavizado de Imagen": La imagen resultante después de aplicar el filtro Gaussiano. El ruido y los detalles finos se reducirán, y la imagen se verá más borrosa.
 
-## 🖥️ Uso
+## Uso
 1. Asegúrate de que el archivo `avatares.jpg` esté en el mismo directorio que el ejecutable.
 2. Ejecuta el programa.
 3. Se mostrarán las dos ventanas con las imágenes.
 4. Presiona cualquier tecla para cerrar las ventanas y finalizar el programa.
    
-## 📚 Recursos de aprendizaje
+## Recursos de aprendizaje
 - [Documentación oficial de OpenCV - Función imread](https://docs.opencv.org/4.x/d4/da8/group__imgcodecs.html)
 - [Documentación oficial de OpenCV - Función imshow](https://docs.opencv.org/4.x/d7/dfc/group__highgui.html#ga453d42fe4cb60e5723281a89973ee563)
 - [Documentación oficial de OpenCV - Función GaussianBlur](https://docs.opencv.org/4.x/d4/d86/group__imgproc__filter.html#gae8bdcd9154ed5ca3cbc1766d960f45c1)

@@ -1,15 +1,17 @@
 # Ejemplo de Filtro RGB en OpenCV
+
 ![OpenCV Logo](https://opencv.org/wp-content/uploads/2022/05/logo.png)
+
 Este repositorio contiene un ejemplo de cómo aplicar un filtro RGB a una imagen utilizando la librería OpenCV en C++. El código separa la imagen en sus componentes de color (rojo, verde y azul) y muestra cada canal por separado, destacando el color dominante en cada píxel.
 
-## 📌 Características principales
+## Características principales
 - Carga de una imagen utilizando la función imread de OpenCV.
 - Separación de la imagen en sus canales de color rojo, verde y azul.
 - Identificación del color dominante en cada píxel.
 - Visualización de la imagen original y los canales de color resultantes.
 - Código bien comentado y estructurado.
 
-## 🚀 Cómo ejecutar
+## Cómo ejecutar
 1. Copiar los archivos build.sh y CMakeLists.txt al mismo directorio que el archivo fuente (.cpp).
     ### build.sh
     ```bash
@@ -69,20 +71,20 @@ El programa realiza las siguientes acciones principales:
 - **Muestra las imágenes:** Utiliza la función `imshow()` para mostrar la imagen original y las imágenes resultantes de los canales rojo, verde y azul en ventanas separadas.
 - **Espera la pulsación de una tecla:** La función `waitKey(0)` hace que el programa espere hasta que se presione una tecla, manteniendo las ventanas visibles.
 - 
-## 📸 Resultados esperados
+## Resultados esperados
 Al ejecutar el programa, se mostrarán cuatro ventanas:
 1. "Imagen original": La imagen cargada.
 2. "Canal Rojo": La imagen filtrada donde solo se muestra el componente rojo dominante en cada píxel.
 3. "Canal Verde": La imagen filtrada donde solo se muestra el componente verde dominante en cada píxel.
 4. "Canal Azul": La imagen filtrada donde solo se muestra el componente azul dominante en cada píxel.
 
-## 🖥️ Uso
+## Uso
 1. Asegúrate de que el archivo `avatares.jpg` esté en el mismo directorio que el ejecutable.
 2. Ejecuta el programa.
 3. Se mostrarán las cuatro ventanas con las imágenes.
 4. Presiona cualquier tecla para cerrar las ventanas y finalizar el programa.
    
-## 📚 Recursos de aprendizaje
+## Recursos de aprendizaje
 - [Documentación oficial de OpenCV - Función imread](https://docs.opencv.org/4.x/d4/da8/group__imgcodecs.html)
 - [Documentación oficial de OpenCV - Función imshow](https://docs.opencv.org/4.x/d7/dfc/group__highgui.html#ga453d42fe4cb60e5723281a89973ee563)
 - [Documentación oficial de OpenCV - Clase Mat](https://docs.opencv.org/4.x/d3/d63/classcv_1_1Mat.html)

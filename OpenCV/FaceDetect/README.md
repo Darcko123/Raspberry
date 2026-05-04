@@ -1,10 +1,10 @@
-# 🧠 Detección de Rostros en Tiempo Real con OpenCV
+# Detección de Rostros en Tiempo Real con OpenCV
 
 ![OpenCV Logo](https://opencv.org/wp-content/uploads/2022/05/logo.png)
 
 Este proyecto implementa un sistema de detección de rostros utilizando clasificadores Haar en cascada de OpenCV, trabajando en tiempo real mediante la cámara web. Es útil para tareas de visión artificial básica, sistemas de vigilancia o como paso inicial para sistemas más complejos de reconocimiento facial.
 
-## 📌 Características principales
+## Características principales
 
 - Captura de video en tiempo real desde cámara web
 - Detección de rostros usando `haarcascade_frontalface_alt.xml`
@@ -12,7 +12,7 @@ Este proyecto implementa un sistema de detección de rostros utilizando clasific
 - Dibujo de rectángulos sobre los rostros detectados
 - Salida visual en ventana de interfaz gráfica
 
-## 🚀 Cómo ejecutar
+## Cómo ejecutar
 
 1. Copiar los archivos build.sh y CMakeLists.txt
    ### build.sh
@@ -62,13 +62,13 @@ Este proyecto implementa un sistema de detección de rostros utilizando clasific
 > NOTA: Asegurese de que el archivo `haarcascade_frontalface_alt.xml` esté en el mismo directorio del ejecutable.
 > Este archivo se encuentra en el repositorio oficial de OpenCV en data/haarcascades/
 
-## 🧪 Descripción del Código
+## Descripción del Código
 - Lectura de video: `capture >> imagenOriginal;`
 - Conversión a escala de grises: `cvtColor()`
 - Ecualización de imagen: `equalizeHist()`
 - Detección de clasificador: `detectMulltiScale`
 
-## 🔍 Detalles Técnicos
+## Detalles Técnicos
 - *Clasificador Haar*:
     Utiliza un modelo preentrenado de detección de rostros proporcionado por OpenCV.
 - *Preprocesamiento*:
@@ -78,6 +78,6 @@ Este proyecto implementa un sistema de detección de rostros utilizando clasific
         equalizeHist(imagenGris, imagenGris);
     ```
 
-## 📚 Recursos de aprendizaje
+## Recursos de aprendizaje
 - [Documentación oficial de OpenCV](https://docs.opencv.org/4.x/)
 - [Clasificadores Harr OpenCV github](https://github.com/opencv/opencv/tree/master/data/haarcascades)

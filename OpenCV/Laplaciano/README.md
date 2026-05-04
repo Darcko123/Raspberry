@@ -4,14 +4,14 @@
 
 Este programa demuestra el uso del operador Laplaciano para la detección de bordes en imágenes.
 
-## 📌 Características principales
+## Características principales
 
 - Aplicación de filtro Gaussiano para reducción de ruido
 - Conversión a escala de grises
 - Detección de bordes con operador Laplaciano
 - Visualización del resultado
 - Código bien comentado y estructurado
-## 🚀 Cómo ejecutar
+## Cómo ejecutar
 1. Copiar los archivos build.sh y CMakeLists.txt
    ### build.sh
    ```bash
@@ -57,7 +57,7 @@ Este programa demuestra el uso del operador Laplaciano para la detección de bor
     ./build.sh
    ```
 
-## 📚 Recursos de aprendizaje
+## Recursos de aprendizaje
 - [Documentación oficial de OpenCV](https://docs.opencv.org/4.x/)
 - [Tutoriales de OpenCV](https://docs.opencv.org/4.x/d9/df8/tutorial_root.html)
 - [Laplace Operator](https://docs.opencv.org/3.4/d5/db5/tutorial_laplace_operator.html)

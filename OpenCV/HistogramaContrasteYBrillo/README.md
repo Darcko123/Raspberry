@@ -4,14 +4,14 @@
 
 Aplicación interactiva que permite ajustar brillo y contraste de una imagen en escala de grises mientras visualiza su histograma en tiempo real.
 
-## 📌 Características principales
+## Características principales
 
 - Ajuste interactivo de brillo y contraste mediante trackbars
 - Visualización del histograma actualizado en tiempo real
 - Implementación de fórmula profesional para transformación de imagen
 - Interfaz simple con dos ventanas (imagen + histograma)
   
-## 🚀 Cómo ejecutar
+## Cómo ejecutar
 1. Copiar los archivos build.sh y CMakeLists.txt
    ### build.sh
    ```bash
@@ -69,7 +69,7 @@ El programa implementa una transformación lineal basada en el trabajo de Werner
 - Para contraste > 100: comprime el rango alrededor del centro (128)
 - Para contraste < 100: expande el rango desde el centro
 
-## 📚 Recursos de aprendizaje
+## Recursos de aprendizaje
 - [Documentación oficial de OpenCV](https://docs.opencv.org/4.x/)
 - [Tutoriales de OpenCV](https://docs.opencv.org/4.x/d9/df8/tutorial_root.html)
 - [Trackbar en OpenCV](https://docs.opencv.org/3.4/da/d6a/tutorial_trackbar.html)
