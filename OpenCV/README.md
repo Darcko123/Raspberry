@@ -4,39 +4,39 @@
 El siguiente documento describe el proceso para la desacarga y compilación de OpenCV tanto para *Raspberry Pi 5* cómo para *Raspberry Zero 2W*
 
 - [Tutorial para instalación y uso de OpenCV en C++ para Raspberry](#tutorial-para-instalación-y-uso-de-opencv-en-c-para-raspberry)
-- [📸 Instalación de OpenCV 4.9.0 en Raspberry Pi 5 (C++)](#-instalación-de-opencv-490-en-raspberry-pi-5-c)
-  - [🔧 Requisitos Previos](#-requisitos-previos)
-  - [1️⃣ Actualizar el Sistema y Dependencias](#1️⃣-actualizar-el-sistema-y-dependencias)
-  - [2️⃣ Descargar OpenCV y OpenCV Contrib](#2️⃣-descargar-opencv-y-opencv-contrib)
-  - [3️⃣ Preparar el Entorno de Compilación](#3️⃣-preparar-el-entorno-de-compilación)
-  - [4️⃣ Configurar CMake](#4️⃣-configurar-cmake)
-  - [5️⃣ Compilar e Instalar](#5️⃣-compilar-e-instalar)
-  - [✅ Prueba de Verificación en C++](#-prueba-de-verificación-en-c)
-  - [🧱 Crear Archivo CMakeLists.txtCMakeLists.txt](#-crear-archivo-cmakeliststxtcmakeliststxt)
-  - [⚙️ Compilar y Ejecutar](#️-compilar-y-ejecutar)
-- [📸 Instalación de OpenCV 4.7.0 en Raspberry Zero 2W (C++)](#-instalación-de-opencv-470-en-raspberry-zero-2w-c)
-  - [🔧 Requisitos Previos](#-requisitos-previos-1)
-  - [1️⃣ Actualizar el Sistema y Dependencias](#1️⃣-actualizar-el-sistema-y-dependencias-1)
-  - [2️⃣ Descargar OpenCV y OpenCV Contrib](#2️⃣-descargar-opencv-y-opencv-contrib-1)
-  - [3️⃣ Preparar el Entorno de Compilación](#3️⃣-preparar-el-entorno-de-compilación-1)
-  - [4️⃣ Configurar CMake](#4️⃣-configurar-cmake-1)
-  - [5️⃣ Compilar e Instalar](#5️⃣-compilar-e-instalar-1)
-  - [✅ Prueba de Verificación en C++](#-prueba-de-verificación-en-c-1)
-  - [🧱 Crear Archivo CMakeLists.txt](#-crear-archivo-cmakeliststxt)
-  - [🧱 Crear Archivo build.sh](#-crear-archivo-buildsh)
-  - [⚙️ Compilar y Ejecutar](#️-compilar-y-ejecutar-1)
+- [Instalación de OpenCV 4.9.0 en Raspberry Pi 5 (C++)](#instalación-de-opencv-490-en-raspberry-pi-5-c)
+  - [Requisitos Previos](#requisitos-previos)
+  - [1. Actualizar el Sistema y Dependencias](#1-actualizar-el-sistema-y-dependencias)
+  - [2. Descargar OpenCV y OpenCV Contrib](#2-descargar-opencv-y-opencv-contrib)
+  - [3. Preparar el Entorno de Compilación](#3-preparar-el-entorno-de-compilación)
+  - [4. Configurar CMake](#4-configurar-cmake)
+  - [5. Compilar e Instalar](#5-compilar-e-instalar)
+  - [Prueba de Verificación en C++](#prueba-de-verificación-en-c)
+  - [Crear Archivo CMakeLists.txtCMakeLists.txt](#crear-archivo-cmakeliststxtcmakeliststxt)
+  - [Compilar y Ejecutar](#compilar-y-ejecutar)
+- [Instalación de OpenCV 4.7.0 en Raspberry Zero 2W (C++)](#instalación-de-opencv-470-en-raspberry-zero-2w-c)
+  - [Requisitos Previos](#requisitos-previos-1)
+  - [1. Actualizar el Sistema y Dependencias](#1-actualizar-el-sistema-y-dependencias-1)
+  - [2. Descargar OpenCV y OpenCV Contrib](#2-descargar-opencv-y-opencv-contrib-1)
+  - [3. Preparar el Entorno de Compilación](#3-preparar-el-entorno-de-compilación-1)
+  - [4. Configurar CMake](#4-configurar-cmake-1)
+  - [5. Compilar e Instalar](#5-compilar-e-instalar-1)
+  - [Prueba de Verificación en C++](#prueba-de-verificación-en-c-1)
+  - [Crear Archivo CMakeLists.txt](#crear-archivo-cmakeliststxt)
+  - [Crear Archivo build.sh](#crear-archivo-buildsh)
+  - [Compilar y Ejecutar](#compilar-y-ejecutar-1)
 
-# 📸 Instalación de OpenCV 4.9.0 en Raspberry Pi 5 (C++)
+# Instalación de OpenCV 4.9.0 en Raspberry Pi 5 (C++)
 Este tutorial describe paso a paso cómo instalar y compilar OpenCV 4.9.0 en una Raspberry Pi 5, así como ejecutar una prueba en C++ para verificar su correcta instalación.
 
-## 🔧 Requisitos Previos
+## Requisitos Previos
 - Raspberry Pi 5 con Raspberry Pi OS actualizado.
 
 - Conexión a Internet.
 
 - Acceso como superusuario (sudo).
 
-## 1️⃣ Actualizar el Sistema y Dependencias
+## 1. Actualizar el Sistema y Dependencias
 Ejecute los siguientes comandos para actualizar el sistema e instalar las dependencias necesarias para compilar OpenCV:
 ``` bash
 sudo apt update && sudo apt upgrade -y 
@@ -45,7 +45,7 @@ sudo apt install -y build-essential cmake git pkg-config libgtk-3-dev libavcodec
 ```
  
 
-## 2️⃣ Descargar OpenCV y OpenCV Contrib
+## 2. Descargar OpenCV y OpenCV Contrib
 Nos moveremos al directorio /home y descargaremos OpenCV versión 4.9.0 junto con los módulos extra (contrib):
 ```bash
 cd /home/
@@ -57,7 +57,7 @@ sudo unzip opencv.zip
 sudo unzip opencv_contrib.zip
 ``` 
 
-## 3️⃣ Preparar el Entorno de Compilación
+## 3. Preparar el Entorno de Compilación
 ```bash
 cd /home/opencv-4.9.0/ 
 
@@ -67,7 +67,7 @@ cd build
 ```
  
 
-## 4️⃣ Configurar CMake
+## 4. Configurar CMake
 Ejecute el siguiente comando para configurar la compilación con CMake. Asegúrese de ajustar rutas si modificó el directorio de descarga:
 ```bash
 sudo  cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D OPENCV_EXTRA_MODULES_PATH=/home/opencv_contrib-4.9.0/modules -D ENABLE_NEON=ON -D ENABLE_VFPV3=OFF -D CPU_BASELINE=NEON -D BUILD_TESTS=OFF -D OPENCV_ENABLE_NONFREE=ON -D BUILD_opencv_python3=ON -D PYTHON3_EXECUTABLE=/usr/bin/python3 -D BUILD_EXAMPLES=OFF -D WITH_OPENMP=ON -D WITH_OPENGL=ON .. 
@@ -77,7 +77,7 @@ Si todo está correcto, el sistema mostrará un mensaje como:
 -- Configuring done -- Generating done -- Build files have been written to: /home/opencv-4.9.0/build 
 ```
 
-## 5️⃣ Compilar e Instalar
+## 5. Compilar e Instalar
 Compilar utilizando todos los núcleos disponibles:
 
 ``` bash
@@ -89,7 +89,7 @@ Instalar OpenCV:
 sudo make install 
 ```
  
-## ✅ Prueba de Verificación en C++
+## Prueba de Verificación en C++
 Cree un archivo de prueba llamado Prueba.cpp en un directorio diferente:
 ```bash
 nano Prueba.cpp 
@@ -110,7 +110,7 @@ int main()
 } 
 ```
 
-## 🧱 Crear Archivo CMakeLists.txtCMakeLists.txt 
+## Crear Archivo CMakeLists.txtCMakeLists.txt 
 En el mismo directorio, cree el archivo CMakeLists.txt:
 ```bash
 nano CMakeLists.txt 
@@ -140,7 +140,7 @@ target_include_directories(Prueba PRIVATE ${OpenCV_INCLUDE_DIRS}) target_link_li
 target_compile_features(Prueba PRIVATE cxx_std_11) 
 ```
 
-## ⚙️ Compilar y Ejecutar
+## Compilar y Ejecutar
 Compile y ejecute la prueba:
 ``` bash
 cmake . 
@@ -152,24 +152,24 @@ Si la instalación fue exitosa, verá en consola algo como:
 OpenCV version: 4.9.0
 ```
 
-# 📸 Instalación de OpenCV 4.7.0 en Raspberry Zero 2W (C++)
+# Instalación de OpenCV 4.7.0 en Raspberry Zero 2W (C++)
 Este tutorial describe paso a paso cómo instalar y compilar OpenCV 4.7.0 en una Raspberry Zero 2W, así como ejecutar una prueba en C++ para verificar su correcta instalación.
 
-## 🔧 Requisitos Previos
+## Requisitos Previos
 - Raspberry Pi con Raspberry Pi OS actualizado.
 
 - Conexión a Internet.
 
 - Acceso como superusuario (sudo).
 
-## 1️⃣ Actualizar el Sistema y Dependencias
+## 1. Actualizar el Sistema y Dependencias
 Ejecute los siguientes comandos para actualizar el sistema e instalar las dependencias necesarias para compilar OpenCV:
 ``` bash
 sudo apt update && sudo apt upgrade -y 
 
 sudo apt install -y build-essential cmake git pkg-config libgtk-3-dev \ libavcodec-dev libavformat-dev libswscale-dev libv4l-dev \ libxvidcore-dev libx264-dev libjpeg-dev libpng-dev libtiff-dev \ gfortran openexr libatlas-base-dev python3-dev python3-numpy \ libtbb-dev libdc1394-dev libopenblas-dev libeigen3-dev –y 
 ```
-## 2️⃣ Descargar OpenCV y OpenCV Contrib
+## 2. Descargar OpenCV y OpenCV Contrib
 Nos moveremos al directorio /home y descargaremos OpenCV versión 4.7.0 junto con los módulos extra (contrib):
 ```bash
 cd /home/
@@ -181,7 +181,7 @@ sudo unzip opencv.zip
 sudo unzip opencv_contrib.zip
 ``` 
 
-## 3️⃣ Preparar el Entorno de Compilación
+## 3. Preparar el Entorno de Compilación
 ```bash
 cd /home/opencv-4.7.0/ 
 
@@ -190,7 +190,7 @@ sudo mkdir build
 cd build 
 ```
 
-## 4️⃣ Configurar CMake
+## 4. Configurar CMake
 Ejecute el siguiente comando para configurar la compilación con CMake. Asegúrese de ajustar rutas si modificó el directorio de descarga:
 
 ```bash
@@ -201,7 +201,7 @@ Si todo está correcto, el sistema mostrará un mensaje como:
 -- Configuring done -- Generating done -- Build files have been written to: /home/opencv-4.7.0/build 
 ```
 
-## 5️⃣ Compilar e Instalar
+## 5. Compilar e Instalar
 Compilar utilizando todos los núcleos disponibles:
 
 ``` bash
@@ -217,7 +217,7 @@ Instalar OpenCV:
 sudo make install 
 ```
  
-## ✅ Prueba de Verificación en C++
+## Prueba de Verificación en C++
 Cree un archivo de prueba llamado Prueba.cpp en un directorio diferente:
 ```bash
 nano Prueba.cpp 
@@ -238,7 +238,7 @@ int main()
 } 
 ```
 
-## 🧱 Crear Archivo CMakeLists.txt
+## Crear Archivo CMakeLists.txt
 En el mismo directorio, cree el archivo CMakeLists.txt:
 ```bash
 nano CMakeLists.txt 
@@ -270,7 +270,7 @@ target_include_directories(Filtro PRIVATE ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(Filtro PRIVATE ${OpenCV_LIBS} ${WIRINGPI_LIB})
 ```
 
-## 🧱 Crear Archivo build.sh
+## Crear Archivo build.sh
 En el mismo directorio, cree el archivo build.sh:
 ```bash
 nano build.sh
@@ -291,7 +291,7 @@ Ejecutar el comando:
 chmod +x build.sh
 ```
 
-## ⚙️ Compilar y Ejecutar
+## Compilar y Ejecutar
 
 Ejecutar:
 
