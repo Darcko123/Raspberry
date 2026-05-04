@@ -4,7 +4,7 @@
 
 Este proyecto muestra cómo aplicar el filtro *Canny* para detección de bordes en imágenes, permitiendo experimentar en tiempo real con los umbrales bajos y altos mediante *trackbars*. Está pensado para propósitos educativos y de prueba visual de parámetros en procesamiento de imágenes.
 
-## 📌 Características principales
+## Características principales
 
 - Conversión de imagen a escala de grises
 - Aplicación de filtro Gaussiano para suavizado
@@ -14,7 +14,7 @@ Este proyecto muestra cómo aplicar el filtro *Canny* para detección de bordes 
   - Umbral alto
 - Visualización simultánea de todas las etapas
 
-## 🚀 Cómo ejecutar
+## Cómo ejecutar
 1. Copiar los archivos build.sh y CMakeLists.txt
    ### build.sh
    ```bash
@@ -62,26 +62,26 @@ Este proyecto muestra cómo aplicar el filtro *Canny* para detección de bordes 
 > [!NOTE]
 > NOTA: Asegurese de que el archivo `Lenna.png` esté en el mismo directorio del ejecutable
 
-## 🧪 Descripción del Código
-### 🔹 Preprocesamiento
+## Descripción del Código
+### Preprocesamiento
 - Lectura de imagen: `imread()`
 - Conversión a escala de grises: `cvtColor()`
 - Suavizado con filtro Gaussiano: `GaussianBlur()`
   
-### 🔹 Filtro Canny
+### Filtro Canny
 - Se usa cv::Canny() con valores ajustables en tiempo real mediante trackbars:
     ```cpp
         Canny(imagen, salida, umbralBajo, umbralAlto, 3);
     ```
 
-### 🔹 Interfaz con Trackbars
+### Interfaz con Trackbars
 - Se emplean dos barras deslizantes para modificar los umbrales de Canny:
     ```cpp
         createTrackbar("Umbral Bajo Canny", "Config", &cannyLow, 255);
         createTrackbar("Umbral Alto Canny", "Config", &cannyHigh, 255);
     ```
 
-### 🔹 Ventanas de Visualización
+### Ventanas de Visualización
 Se muestran las siguientes ventanas:
 
 - `Imagen Original`
@@ -90,10 +90,10 @@ Se muestran las siguientes ventanas:
 - `Filtro Canny`
 - `Config` (controles)
 
-## 🎮 Controles
+## Controles
 - Mueve los sliders para ajustar los valores de umbral bajo y alto del filtro Canny.
 - Presiona ESC para salir del programa.
 
-## 📚 Recursos de aprendizaje
+## Recursos de aprendizaje
 - [Documentación oficial de OpenCV](https://docs.opencv.org/4.x/)
 - [OpenCV Canny Edge Detection](https://docs.opencv.org/4.x/da/d22/tutorial_py_canny.html)
