@@ -2,7 +2,7 @@
 
 Este repositorio proporciona una colección de recursos, ejemplos y tutoriales prácticos para trabajar con la Raspberry Pi Zero 2W. El objetivo es facilitar el desarrollo de proyectos básicos e intermedios utilizando C, C++ con OpenCV y HTML/CSS.
 
-## 📚 **Descripción General**
+## **Descripción General**
 
 Este repositorio está dividido en tres secciones principales:
 
@@ -12,7 +12,7 @@ Este repositorio está dividido en tres secciones principales:
 
 ---
 
-## 📁 **Estructura del Repositorio**
+## **Estructura del Repositorio**
 
 ```
 Raspberry/
@@ -62,7 +62,7 @@ Raspberry/
 
 ---
 
-## 🖥️Requerimientos de Hardware
+## Requerimientos de Hardware
 - Raspberry Pi Zero 2W
 
 - MicroSD (mínimo 16 GB Clase 10 recomendada)
@@ -74,7 +74,7 @@ Raspberry/
 - Opcional: cámara compatible con la Raspberry Pi
 
 ---
-## 🛠️ Requerimientos de Software
+## Requerimientos de Software
 - Sistema operativo Raspberry Pi OS (recomendado Lite o Desktop)
 
 - Librería WiringPi instalada
@@ -89,7 +89,7 @@ Raspberry/
 
 ---
 
-## 🚀 **Cómo Empezar**
+## **Cómo Empezar**
 
 1. **Clona el repositorio:**
    ```bash
@@ -106,13 +106,13 @@ Raspberry/
 
 ---
 
-## 📄 **Licencia**
+## **Licencia**
 
 Este proyecto está bajo la licencia **MIT**. Consulta el archivo [LICENSE](./LICENSE.md) para más detalles.
 
 ---
 
-## 📞 **Contacto**
+## **Contacto**
 
 Si tienes alguna duda o sugerencia, no dudes en ponerte en contacto:
 - **Autor:** Daniel Ruiz
