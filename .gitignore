@@ -1,0 +1,9 @@
+# Compilación fuera del código fuente (build.sh)
+build/
+
+# Restos de compilaciones dentro del código fuente (cmake .)
+CMakeFiles/
+CMakeCache.txt
+
+# Imágenes que genera RegionOfInterest(ROI)
+roi_image_*.jpg
