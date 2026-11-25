@@ -1,22 +1,17 @@
 cmake_minimum_required(VERSION 3.12)
 project(ROI LANGUAGES CXX)
 
-# Establecer flags del compilador (puede ser útil en la Raspberry Pi Zero 2W)
-set(CMAKE_CXX_FLAGS "" CACHE STRING "Flags for C++ compiler" FORCE)
-
-# Configuración de OpenCV
-find_package(OpenCV 4.7.0 REQUIRED)
-message(STATUS "OpenCV version: ${OpenCV_VERSION}")
-
-# Buscar wiringPi
-find_library(WIRINGPI_LIB wiringPi)
-if(WIRINGPI_LIB)
-    message(STATUS "Found wiringPi library: ${WIRINGPI_LIB}")
-else()
-    message(WARNING "wiringPi library not found. Proceeding without it.")
+# Release (-O3) por defecto: crítico en la Raspberry Pi Zero 2W
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release)
 endif()
 
-# Crear ejecutable
-add_executable(ROI ROI.cpp)
-target_include_directories(ROI PRIVATE ${OpenCV_INCLUDE_DIRS})
-target_link_libraries(ROI PRIVATE ${OpenCV_LIBS} ${WIRINGPI_LIB})
+find_package(OpenCV 4 REQUIRED COMPONENTS core imgproc imgcodecs highgui)
+message(STATUS "OpenCV version: ${OpenCV_VERSION}")
+
+add_executable(${PROJECT_NAME} ROI.cpp)
+target_link_libraries(${PROJECT_NAME} PRIVATE ${OpenCV_LIBS})
+target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_11)
+
+# Recurso que el ejemplo carga desde el directorio de trabajo (build/)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/../assets/avatares.png ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
