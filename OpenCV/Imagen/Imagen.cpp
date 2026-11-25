@@ -13,14 +13,14 @@ int main()
     // Carga de la imagen
     // =============================================
     //imread puede leer “BMP, DIB, JPEG, JPE, PNG, PBM, PGM, PPM, SR, RAS, and TIFF”
-    Mat img = imread("avatares.jpg", IMREAD_COLOR);
+    Mat img = imread("avatares.png", IMREAD_COLOR);
 
     // =============================================
     // Verificación de carga de imagen
     // =============================================
     if(img.empty())
     {
-        cerr << "Error: No se pudo cargar la imagen 'avatares.jpg'" << endl;
+        cerr << "Error: No se pudo cargar la imagen 'avatares.png'" << endl;
         cerr << "Verifique que la imagen existe en el directorio correcto" << endl;
         return EXIT_FAILURE;
     }

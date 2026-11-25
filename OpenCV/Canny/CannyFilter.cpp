@@ -24,9 +24,9 @@ int main(int argc, char** argv)
     // =============================================
     // Carga y verificación de la imagen/video
     // =============================================
-    imagenOriginal = imread("Lenna.png"); // Cargar imagen desde archivo
+    imagenOriginal = imread("avatares.png"); // Cargar imagen desde archivo
     if(imagenOriginal.empty()) {
-        cerr << "Error: No se pudo cargar la imagen 'Lenna.png'" << endl;
+        cerr << "Error: No se pudo cargar la imagen 'avatares.png'" << endl;
         cerr << "Verifique que:" << endl;
         cerr << "1. La imagen existe en el directorio actual" << endl;
         cerr << "2. El nombre y extensión son correctos" << endl;

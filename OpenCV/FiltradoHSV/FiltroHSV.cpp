@@ -10,7 +10,7 @@ using namespace cv;
 int main(int argc, char** argv)
 {
     // Cargar imagen original
-    Mat image = imread("avatares.jpg", IMREAD_COLOR);
+    Mat image = imread("avatares.png", IMREAD_COLOR);
 
     if (image.empty()) {
         cerr << "Error: No se pudo abrir o encontrar la imagen." << endl;

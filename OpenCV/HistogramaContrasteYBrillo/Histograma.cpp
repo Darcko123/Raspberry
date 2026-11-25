@@ -114,7 +114,7 @@ static void updateBrightnessContrast(int, void*) {
 // =============================================
 int main() {
     // Cargar imagen en escala de grises
-    image = imread("avatares.jpg", IMREAD_GRAYSCALE);
+    image = imread("avatares.png", IMREAD_GRAYSCALE);
     if (image.empty()) {
         cerr << "Error: No se pudo cargar la imagen." << endl;
         return EXIT_FAILURE;

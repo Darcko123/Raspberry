@@ -18,10 +18,10 @@ int main(int argc, char** argv)
     // =============================================
     // Carga y verificación de la imagen
     // =============================================
-    imageOriginal = imread("avatares.jpg", IMREAD_COLOR);  // Cargar imagen a color
+    imageOriginal = imread("avatares.png", IMREAD_COLOR);  // Cargar imagen a color
 
     if(imageOriginal.empty()) {
-        cerr << "Error: No se pudo cargar la imagen 'avatares.jpg'" << endl;
+        cerr << "Error: No se pudo cargar la imagen 'avatares.png'" << endl;
         cerr << "Verifique que:" << endl;
         cerr << "1. La imagen existe en el directorio actual" << endl;
         cerr << "2. El nombre y extensión son correctos" << endl;

@@ -10,7 +10,7 @@ using namespace cv;               // Espacio de nombres de OpenCV
 int main(int argc, char** argv)
 {
     // Cargar imagen desde archivo (modificar la ruta si es necesario)
-    Mat image = imread("avatares.jpg", IMREAD_COLOR);
+    Mat image = imread("avatares.png", IMREAD_COLOR);
 
     // Verificar que la imagen se haya cargado correctamente
     if (image.empty()) {

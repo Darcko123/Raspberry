@@ -9,7 +9,7 @@ int main() {
     // =============================================
     // Carga y verificación de la imagen
     // =============================================
-    Mat image = imread("avatares.jpg");
+    Mat image = imread("avatares.png");
 
     if(image.empty()) {
         cout << "Error: No se pudo cargar la imagen." << endl;
