@@ -1,22 +1,22 @@
-#include <iostream>                // Para entrada/salida est醤dar y mensajes de error
-#include <opencv2/opencv.hpp>      // Incluye todos los m骴ulos principales de OpenCV
+#include <iostream>                // Para entrada/salida est谩ndar y mensajes de error
+#include <opencv2/opencv.hpp>      // Incluye todos los m贸dulos principales de OpenCV
 
-using namespace std;              // Espacio de nombres est醤dar
+using namespace std;              // Espacio de nombres est谩ndar
 using namespace cv;               // Espacio de nombres de OpenCV
 
 int main(int argc, char** argv)
 {
     // =============================================
-    // Declaraci髇 de variables y configuraci髇 inicial
+    // Declaraci贸n de variables y configuraci贸n inicial
     // =============================================
     Mat imageOriginal, gaussianResult;  // Matrices para imagen original y resultado
     
-    // Configuraci髇 de la ventana de visualizaci髇
+    // Configuraci贸n de la ventana de visualizaci贸n
     const char* window_name = "Filtro Gaussiano - Suavizado de Imagen";
-    const int kernelSize = 3;           // Tama駉 del kernel (3x3)
+    const int kernelSize = 3;           // Tama帽o del kernel (3x3)
 
     // =============================================
-    // Carga y verificaci髇 de la imagen
+    // Carga y verificaci贸n de la imagen
     // =============================================
     imageOriginal = imread("avatares.png", IMREAD_COLOR);  // Cargar imagen a color
 
@@ -24,41 +24,41 @@ int main(int argc, char** argv)
         cerr << "Error: No se pudo cargar la imagen 'avatares.png'" << endl;
         cerr << "Verifique que:" << endl;
         cerr << "1. La imagen existe en el directorio actual" << endl;
-        cerr << "2. El nombre y extensi髇 son correctos" << endl;
+        cerr << "2. El nombre y extensi贸n son correctos" << endl;
         cerr << "3. Tiene permisos de lectura" << endl;
-        return EXIT_FAILURE;  // C骴igo de error est醤dar
+        return EXIT_FAILURE;  // C贸digo de error est谩ndar
     }
 
     // =============================================
-    // Aplicaci髇 del Filtro Gaussiano
+    // Aplicaci贸n del Filtro Gaussiano
     // =============================================
     /*
      * El filtro Gaussiano es un suavizado (blur) que:
-     * - Reduce ruido y detalles peque駉s
+     * - Reduce ruido y detalles peque帽os
      * - Preserva mejor los bordes que un blur promedio
-     * - Usa una funci髇 de peso Gaussiana (campana de Gauss)
+     * - Usa una funci贸n de peso Gaussiana (campana de Gauss)
      * 
-     * Par醡etros:
-     * 1. Size(3,3): Tama駉 del kernel (ancho, alto) - debe ser impar
-     * 2. 0: Sigma en X (0 = calculado autom醫icamente desde kernel size)
+     * Par谩metros:
+     * 1. Size(3,3): Tama帽o del kernel (ancho, alto) - debe ser impar
+     * 2. 0: Sigma en X (0 = calculado autom谩ticamente desde kernel size)
      * 3. 0: Sigma en Y (si es 0, usa el mismo valor que sigma X)
-     * 4. BORDER_DEFAULT: M閠odo para manejar p韝eles en bordes
+     * 4. BORDER_DEFAULT: M茅todo para manejar p铆xeles en bordes
      */
     GaussianBlur(imageOriginal,       // Imagen de entrada
                 gaussianResult,       // Imagen de salida
-                Size(kernelSize, kernelSize), // Tama駉 del kernel
+                Size(kernelSize, kernelSize), // Tama帽o del kernel
                 0,                    // Sigma X (0 = auto-calculado)
                 0,                    // Sigma Y
                 BORDER_DEFAULT);      // Tratamiento de bordes
 
     // =============================================
-    // Visualizaci髇 y guardado de resultados
+    // Visualizaci贸n y guardado de resultados
     // =============================================
     // Mostrar imagen original y resultado
     imshow("Imagen Original", imageOriginal);
     imshow(window_name, gaussianResult);
 
-    // Opci髇 para guardar el resultado (descomentar para usar)
+    // Opci贸n para guardar el resultado (descomentar para usar)
     // imwrite("imagen_suavizada_gaussiano.jpg", gaussianResult);
 
     // Mensaje de ayuda para el usuario
@@ -67,5 +67,5 @@ int main(int argc, char** argv)
     // Esperar entrada del usuario
     waitKey(0);
 
-    return EXIT_SUCCESS;  // Indica terminaci髇 exitosa
+    return EXIT_SUCCESS;  // Indica terminaci贸n exitosa
 }

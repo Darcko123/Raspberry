@@ -1,10 +1,10 @@
 #include <iostream>               // Para salida de mensajes de error
-#include <opencv2/opencv.hpp>     // LibrerÌa principal de OpenCV
-#include "opencv2/highgui.hpp"    // Funciones para interfaz gr·fica (ventanas)
+#include <opencv2/opencv.hpp>     // Librer√≠a principal de OpenCV
+#include "opencv2/highgui.hpp"    // Funciones para interfaz gr√°fica (ventanas)
 #include "opencv2/imgproc.hpp"    // Operaciones de procesamiento de imagen
-#include "opencv2/imgcodecs.hpp"  // Funciones para lectura/escritura de im·genes
+#include "opencv2/imgcodecs.hpp"  // Funciones para lectura/escritura de im√°genes
 
-using namespace std;              // Espacio de nombres est·ndar
+using namespace std;              // Espacio de nombres est√°ndar
 using namespace cv;               // Espacio de nombres de OpenCV
 
 int main() 
@@ -12,11 +12,11 @@ int main()
     // =============================================
     // Carga de la imagen
     // =============================================
-    //imread puede leer ìBMP, DIB, JPEG, JPE, PNG, PBM, PGM, PPM, SR, RAS, and TIFFî
+    //imread puede leer ‚ÄúBMP, DIB, JPEG, JPE, PNG, PBM, PGM, PPM, SR, RAS, and TIFF‚Äù
     Mat img = imread("avatares.png", IMREAD_COLOR);
 
     // =============================================
-    // VerificaciÛn de carga de imagen
+    // Verificaci√≥n de carga de imagen
     // =============================================
     if(img.empty())
     {
