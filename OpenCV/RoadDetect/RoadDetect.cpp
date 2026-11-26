@@ -1,7 +1,7 @@
 /**
  * @file RoadDetect.cpp
  *
- * @brief Detecta las líneas del carril en el vídeo de la cámara con Canny y la transformada de Hough.
+ * @brief Detecta las líneas del carril con Canny y Hough; si no hay cámara, usa una imagen de assets/.
  *
  * @author Daniel Ruiz
  * @date Noviembre 26, 2026
@@ -12,11 +12,35 @@
 #include <vector>                // vector
 #include <opencv2/core.hpp>      // Mat, Point, Vec4i
 #include <opencv2/imgproc.hpp>   // cvtColor, GaussianBlur, Canny, fillConvexPoly, HoughLinesP, polylines, line, putText
+#include <opencv2/imgcodecs.hpp> // imread
 #include <opencv2/highgui.hpp>   // imshow, waitKey
 #include <opencv2/videoio.hpp>   // VideoCapture, CAP_PROP_*
 
 using namespace std;
 using namespace cv;
+
+// =============================================
+// Entrada alternativa cuando no hay cámara
+// =============================================
+// CMake copia estas imágenes a build/ desde ../assets/. Se prueba en orden y
+// se devuelve la primera que se puede cargar.
+static bool loadFallbackImage(Mat& frame, const char*& imagePath)
+{
+    const char* imagePaths[] = {
+        "carretera2_1.jpg",
+        "carretera3_1.jpg",
+        "carretera4_1.jpg"
+    };
+
+    for (const char* path : imagePaths) {
+        frame = imread(path, IMREAD_COLOR);
+        if (!frame.empty()) {
+            imagePath = path;
+            return true;
+        }
+    }
+    return false;
+}
 
 // =============================================
 // Filtrado y clasificación de líneas
@@ -152,32 +176,51 @@ static void processLines(const Mat& frame, const Mat& roiImage, Mat& houghResult
 int main()
 {
     // =============================================
-    // Configuración de la cámara
+    // Configuración de la cámara y entrada alternativa
     // =============================================
     VideoCapture capture(0);  // Inicializar la cámara (0 = cámara por defecto)
-    if (!capture.isOpened()) {
-        cerr << "Error: No se pudo abrir la cámara." << endl;
-        return EXIT_FAILURE;
+    Mat frame;
+    const char* imagePath = nullptr;
+    bool useImage = false;
+
+    if (capture.isOpened()) {
+        capture.set(CAP_PROP_FRAME_WIDTH, 640);   // Ancho del frame
+        capture.set(CAP_PROP_FRAME_HEIGHT, 480);  // Alto del frame
+        capture.set(CAP_PROP_FPS, 60);            // Frames por segundo
+        capture.set(CAP_PROP_BRIGHTNESS, 128);    // Brillo (0-255)
+        capture.set(CAP_PROP_CONTRAST, 128);      // Contraste (0-255)
+        capture >> frame;  // Primer frame: some cámaras abren pero no entregan imagen
+    } else {
+        cerr << "Aviso: No se pudo abrir la cámara; se prueba con una imagen de assets/." << endl;
     }
 
-    capture.set(CAP_PROP_FRAME_WIDTH, 640);   // Ancho del frame
-    capture.set(CAP_PROP_FRAME_HEIGHT, 480);  // Alto del frame
-    capture.set(CAP_PROP_FPS, 60);            // Frames por segundo
-    capture.set(CAP_PROP_BRIGHTNESS, 128);    // Brillo (0-255)
-    capture.set(CAP_PROP_CONTRAST, 128);      // Contraste (0-255)
+    if (!capture.isOpened() || frame.empty()) {
+        if (!loadFallbackImage(frame, imagePath)) {
+            cerr << "Error: No se pudo abrir la cámara ni cargar una imagen de assets/." << endl;
+            return EXIT_FAILURE;
+        }
+        useImage = true;
+        cerr << "Aviso: Usando '" << imagePath << "' en lugar de la cámara." << endl;
+    }
 
     // =============================================
     // Bucle principal
     // =============================================
-    Mat frame;
     Mat gray, blurred, edges;
     Mat laneMask, roiImage, houghResult;
 
     while (true) {
-        capture >> frame;  // Capturar un frame de la cámara
-        if (frame.empty()) {
-            cerr << "Error: No se pudo capturar la imagen de la cámara." << endl;
-            return EXIT_FAILURE;
+        if (!useImage) {
+            capture >> frame;  // Capturar el siguiente frame de la cámara
+            if (frame.empty()) {
+                // La cámara puede dejar de entregar frames en cualquier momento
+                if (!loadFallbackImage(frame, imagePath)) {
+                    cerr << "Error: No se pudo capturar la imagen de la cámara ni cargar una imagen de assets/." << endl;
+                    return EXIT_FAILURE;
+                }
+                useImage = true;
+                cerr << "Aviso: Usando '" << imagePath << "' en lugar de la cámara." << endl;
+            }
         }
 
         // Las máscaras se crean con el tamaño del primer frame. Antes se
@@ -231,8 +274,9 @@ int main()
         // =============================================
         // Salida
         // =============================================
-        int key = waitKey(1);
-        if (key == 27 || key == 'q') {
+        // Con imagen solo se procesa una vez: cualquier tecla cierra el programa.
+        int key = waitKey(useImage ? 0 : 1);
+        if (useImage || key == 27 || key == 'q') {
             cout << "Saliendo del programa..." << endl;
             waitKey(1000);  // Espera 1 segundo para que se vea el mensaje
             break;
