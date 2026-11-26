@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Comprueba los ejemplos de OpenCV/ y los compila (sin ejecutarlos). Sale con 1 si algo falla:
 #  - regla de nombres: carpeta = <carpeta>.cpp = project() del CMakeLists.txt
+#  - encabezados ## y ### de cada README.md = los de _PLANTILLA/README.md, en el mismo orden
 #  - enlaces relativos rotos en los .md de OpenCV/
 #  - compilación de cada ejemplo
 set -uo pipefail
@@ -12,6 +13,11 @@ for cm in */CMakeLists.txt; do
   name=$(sed -n 's/^project(\([A-Za-z0-9_]*\).*/\1/p' "$cm")
   if [ "$name" != "$dir" ] || [ ! -f "$dir/$dir.cpp" ]; then
     echo "NOMBRE $dir (project: '$name', se espera $dir/$dir.cpp)"
+    fail=1
+  fi
+  if [ "$dir" != _PLANTILLA ] &&
+     ! diff <(grep -E '^###? ' _PLANTILLA/README.md) <(grep -E '^###? ' "$dir/README.md" 2>/dev/null) > /dev/null; then
+    echo "README $dir (encabezados distintos de los de _PLANTILLA/README.md)"
     fail=1
   fi
 done
