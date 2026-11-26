@@ -96,8 +96,8 @@ El programa se ejecuta desde `build/` porque abre `avatares.png` con una ruta re
 
 El programa imprime `Presione cualquier tecla para salir...` y abre dos ventanas:
 
-1. **Imagen Original**: la imagen cargada.
-2. **Filtro Gaussiano - Suavizado de Imagen**: la imagen ligeramente desenfocada; se nota sobre todo en los bordes y en las texturas finas.
+1. **Imagen original**: la imagen cargada.
+2. **Filtro Gaussiano - Suavizado de imagen**: la imagen ligeramente desenfocada; se nota sobre todo en los bordes y en las texturas finas.
 
 Al pulsar cualquier tecla con una ventana seleccionada, el programa termina.
 
@@ -110,7 +110,7 @@ Desde `build/`:
 ```
 
 - Tras cerrar con una tecla debe mostrar `salida: 0`.
-- Si se ejecuta fuera de `build/`, debe imprimir `Error: No se pudo cargar la imagen 'avatares.png'` seguido de una lista de comprobaciones, y salir con `1`.
+- Si se ejecuta fuera de `build/`, debe imprimir `Error: No se pudo cargar la imagen 'avatares.png'` y salir con `1`.
 
 `RSS máx` es la memoria pico del proceso. `tiempo` incluye el rato que las ventanas quedan abiertas, así que solo sirve como cota.
 
@@ -190,16 +190,16 @@ El filtro es, por tanto, un **paso bajo**: atenúa las frecuencias altas (ruido,
 
 El programa ([`GaussianFilter.cpp`](GaussianFilter.cpp)) sigue estos pasos:
 
-1. **Carga:** `imread("avatares.png", IMREAD_COLOR)` y comprobación con `empty()`.
+1. **Carga:** `imread("avatares.png", IMREAD_COLOR)` y comprobación con `image.empty()`.
 2. **Filtro:** una sola llamada aplica el suavizado a los 3 canales:
    ```cpp
-   GaussianBlur(imageOriginal, gaussianResult,
+   GaussianBlur(image, blurred,
                 Size(kernelSize, kernelSize), // 3×3, debe ser impar
                 0, 0,                         // sigma X e Y: 0 = calculada
                 BORDER_DEFAULT);
    ```
    Con sigma `0` y un *kernel* de 3×3, OpenCV usa el *kernel* binomial fijo `[1 2 1] / 4` en cada dirección (ver [Fundamentos](#fundamentos)). `BORDER_DEFAULT` refleja los píxeles del borde para poder aplicar el *kernel* en los bordes de la imagen.
-3. **Visualización:** `imshow` del original y del resultado, mensaje por consola y `waitKey(0)`. La línea `imwrite("imagen_suavizada_gaussiano.jpg", ...)` está comentada; al descomentarla, el resultado se guarda en `build/`.
+3. **Visualización:** `imshow` del original y del resultado, mensaje por consola y `waitKey(0)`.
 
 ## Funciones OpenCV utilizadas
 
@@ -209,7 +209,6 @@ El programa ([`GaussianFilter.cpp`](GaussianFilter.cpp)) sigue estos pasos:
 | `GaussianBlur` | imgproc | Suaviza la imagen con un *kernel* Gaussiano de 3×3 |
 | `imshow` | highgui | Muestra el original y el resultado |
 | `waitKey` | highgui | Espera una tecla y procesa los eventos de las ventanas |
-| `imwrite` (comentada) | imgcodecs | Guardaría el resultado en disco |
 
 ## Limitaciones conocidas
 

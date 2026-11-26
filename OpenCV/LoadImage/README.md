@@ -126,7 +126,7 @@ Una imagen se guarda en disco comprimida y en un formato concreto (PNG, JPEG, �
 2. Decodifica el contenido a una matriz de píxeles.
 3. La convierte al formato pedido. Con `IMREAD_COLOR` el resultado es siempre `CV_8UC3` (3 canales de 8 bits) en orden **BGR**. `avatares.png` tiene 4 canales (RGBA), así que el canal alfa (la transparencia) se descarta. `IMREAD_UNCHANGED` lo conservaría (`CV_8UC4`) e `IMREAD_GRAYSCALE` daría un solo canal.
 
-El orden BGR es una herencia de los primeros años de OpenCV y coincide con el de los mapas de bits BMP. Las bibliotecas que esperan RGB, como la mayoría de las redes neuronales, necesitan antes `cvtColor(img, img, COLOR_BGR2RGB)`.
+El orden BGR es una herencia de los primeros años de OpenCV y coincide con el de los mapas de bits BMP. Las bibliotecas que esperan RGB, como la mayoría de las redes neuronales, necesitan antes `cvtColor(image, image, COLOR_BGR2RGB)`.
 
 #### De la matriz a la pantalla
 
@@ -152,8 +152,8 @@ El orden BGR es una herencia de los primeros años de OpenCV y coincide con el d
 El programa ([`LoadImage.cpp`](LoadImage.cpp)) hace tres pasos:
 
 1. **Carga:** `imread("avatares.png", IMREAD_COLOR)` decodifica el PNG en una matriz `Mat` de tipo `CV_8UC3` (3 canales de 8 bits en orden **BGR**, no RGB). `IMREAD_COLOR` descarta el canal alfa del PNG.
-2. **Comprobación:** si el archivo no existe o no se puede decodificar, `imread` no lanza ninguna excepción: devuelve una `Mat` vacía. Por eso se comprueba con `img.empty()` y se sale con `EXIT_FAILURE`.
-3. **Visualización:** `imshow("Imagen avatares", img)` crea la ventana y `waitKey(0)` bloquea hasta que se pulsa una tecla. Sin `waitKey` la ventana no llega a dibujarse, porque es esa función la que procesa los eventos de la interfaz.
+2. **Comprobación:** si el archivo no existe o no se puede decodificar, `imread` no lanza ninguna excepción: devuelve una `Mat` vacía. Por eso se comprueba con `image.empty()` y se sale con `EXIT_FAILURE`.
+3. **Visualización:** `imshow("Imagen avatares", image)` crea la ventana y `waitKey(0)` bloquea hasta que se pulsa una tecla. Sin `waitKey` la ventana no llega a dibujarse, porque es esa función la que procesa los eventos de la interfaz.
 
 ## Funciones OpenCV utilizadas
 

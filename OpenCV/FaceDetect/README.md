@@ -108,7 +108,7 @@ El programa se ejecuta desde `build/` porque abre `haarcascade_frontalface_alt.x
 
 ### Resultado esperado
 
-El programa imprime `Detección de rostros iniciada. Presiona 'q' o 'Esc' para salir.` y abre la ventana **Rostros Detectados** con el vídeo de la cámara. Cada rostro de frente aparece enmarcado con un rectángulo azul. Al pulsar **q** o **ESC** con la ventana seleccionada, imprime `Saliendo del programa...` y termina un segundo después.
+El programa imprime `Detección de rostros iniciada. Presiona 'q' o 'Esc' para salir.` y abre la ventana **Rostros detectados** con el vídeo de la cámara. Cada rostro de frente aparece enmarcado con un rectángulo azul. Al pulsar **q** o **ESC** con la ventana seleccionada, imprime `Saliendo del programa...` y termina un segundo después.
 
 ### Verificación
 
@@ -209,15 +209,15 @@ Las cifras son estimaciones analíticas para 640 × 480; la cámara puede entreg
 
 ## Descripción del Código
 
-El programa ([`FaceDetect.cpp`](FaceDetect.cpp)) se divide en `main` y la función `detectarYMostrar`:
+El programa ([`FaceDetect.cpp`](FaceDetect.cpp)) se divide en `main` y la función `detectAndDraw`, definida antes que `main`:
 
-1. **Clasificador:** `clasificador.load("haarcascade_frontalface_alt.xml")`; si falla, sale con `EXIT_FAILURE`.
+1. **Clasificador:** `classifier.load("haarcascade_frontalface_alt.xml")`; si falla, sale con `EXIT_FAILURE`.
 2. **Cámara:** `VideoCapture capture(0)` abre la primera cámara, se comprueba con `isOpened()` y se piden 640×480 con `capture.set(CAP_PROP_FRAME_WIDTH/HEIGHT, …)`. La cámara puede ignorar la petición si no admite esa resolución.
-3. **Bucle:** `capture >> imagenOriginal` lee un fotograma; si llega vacío, el programa sale con `EXIT_FAILURE`. Después se llama a `detectarYMostrar` y `waitKey(1)` comprueba si se pulsó `q` o ESC.
-4. **`detectarYMostrar`:** convierte a grises, ecualiza el histograma para compensar la iluminación y busca rostros:
+3. **Bucle:** `capture >> frame` lee un fotograma; si llega vacío, el programa sale con `EXIT_FAILURE`. Después se llama a `detectAndDraw` y `waitKey(1)` comprueba si se pulsó `q` o ESC.
+4. **`detectAndDraw`:** convierte a grises, ecualiza el histograma para compensar la iluminación y busca rostros:
    ```cpp
-   clasificador.detectMultiScale(imagenGris, rostros, 1.1, 4,
-                                 0 | CASCADE_SCALE_IMAGE, Size(30, 30));
+   classifier.detectMultiScale(gray, faces, 1.1, 4,
+                               0 | CASCADE_SCALE_IMAGE, Size(30, 30));
    ```
    `1.1` es el factor de escala entre niveles de la pirámide (un 10 % de reducción en cada paso), `4` es el número mínimo de detecciones vecinas para aceptar un rostro y `Size(30, 30)` es el rostro más pequeño que se busca. Cada `Rect` encontrado se dibuja con `rectangle` en azul (BGR `255, 0, 0`) y grosor 2.
 
@@ -240,7 +240,6 @@ El programa ([`FaceDetect.cpp`](FaceDetect.cpp)) se divide en `main` y la funci�
 - El clasificador `frontalface_alt` solo detecta rostros de frente; los perfiles, los rostros inclinados o con poca luz se pierden con facilidad.
 - La detección se hace sobre el fotograma completo en cada vuelta, sin reducir la resolución ni limitar la búsqueda a una región, así que es la parte más costosa del bucle.
 - El programa no muestra los FPS ni el tiempo por fotograma.
-- La variable `scale` y la cabecera `opencv2/features2d.hpp` se declaran pero no se usan.
 - La cámara CSI en Bookworm necesita `libcamerify`, que aún no se ha probado con este ejemplo en la Pi.
 
 ## Recursos de aprendizaje

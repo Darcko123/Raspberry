@@ -109,7 +109,7 @@ Desde `build/`:
 ```
 
 - Tras cerrar con una tecla debe mostrar `salida: 0`.
-- Si se ejecuta fuera de `build/`, debe imprimir `Error: No se pudo abrir o encontrar la imagen.` y salir con `255` (el código devuelve `-1`).
+- Si se ejecuta fuera de `build/`, debe imprimir `Error: No se pudo cargar la imagen 'avatares.png'` y salir con `1`.
 
 `RSS máx` es la memoria pico del proceso. `tiempo` incluye el rato que las ventanas quedan abiertas, así que solo sirve como cota.
 
@@ -167,7 +167,7 @@ Un ángulo de 0° a 360° no cabe en un `uchar`, así que `cvtColor(..., COLOR_B
 M(x, y) = \begin{cases} 255 & \text{si } L_c \le I_c(x, y) \le U_c \text{ para } c \in \{H, S, V\} \\ 0 & \text{en otro caso} \end{cases}
 ```
 
-La unión de los dos rangos del rojo es un OR píxel a píxel (`maskRojo1 | maskRojo2`). `bitwise_and(image, image, salida, mascara)` copia la imagen original solo donde la máscara vale 255; como `salida` se crea en esa misma llamada, OpenCV la inicializa a cero y el resto queda en negro.
+La unión de los dos rangos del rojo es un OR píxel a píxel (`maskRed1 | maskRed2`). `bitwise_and(image, image, salida, mascara)` copia la imagen original solo donde la máscara vale 255; como `salida` se crea en esa misma llamada, OpenCV la inicializa a cero y el resto queda en negro.
 
 Una máscara de 1 byte por píxel es el resultado habitual de una segmentación. A partir de ella se puede contar el área del objeto (`countNonZero`), buscar sus contornos (`findContours`) o calcular su centro (`moments`), que es lo que hace un seguidor de objetos por color.
 
@@ -176,9 +176,9 @@ Una máscara de 1 byte por píxel es el resultado habitual de una segmentación.
 | Matriz | Tamaño |
 |---|---|
 | `image` (BGR) | 1,08 MB |
-| `imageHSV` | 1,08 MB |
-| 5 máscaras de 1 canal (`maskRojo1`, `maskRojo2`, `maskRojo`, `maskVerde`, `maskAzul`) | 5 × 360 KB = 1,8 MB |
-| 3 salidas BGR (`rojo`, `verde`, `azul`) | 3 × 1,08 MB = 3,24 MB |
+| `hsv` | 1,08 MB |
+| 5 máscaras de 1 canal (`maskRed1`, `maskRed2`, `maskRed`, `maskGreen`, `maskBlue`) | 5 × 360 KB = 1,8 MB |
+| 3 salidas BGR (`red`, `green`, `blue`) | 3 × 1,08 MB = 3,24 MB |
 | **Total** | **≈ 7,2 MB** |
 
 - **Cómputo:** el paso caro es `cvtColor`, que por cada píxel calcula un máximo, un mínimo y dos divisiones. Para imágenes de 8 bits, OpenCV sustituye las divisiones por tablas precalculadas y procesa varios píxeles a la vez con NEON. `inRange`, `|` y `bitwise_and` son comparaciones y operaciones lógicas por bytes, también vectorizadas. A diferencia de [RGBFilter](../RGBFilter/), el código del ejemplo no tiene ninguna rama por píxel.
@@ -191,16 +191,16 @@ Una máscara de 1 byte por píxel es el resultado habitual de una segmentación.
 El programa ([`HSVFilter.cpp`](HSVFilter.cpp)) sigue estos pasos:
 
 1. **Carga:** `imread("avatares.png", IMREAD_COLOR)` y comprobación con `image.empty()`.
-2. **Conversión:** `cvtColor(image, imageHSV, COLOR_BGR2HSV)`. En imágenes de 8 bits, OpenCV guarda el tono (H) en el rango 0–179 (grados divididos entre 2) y la saturación (S) y el valor (V) en 0–255.
+2. **Conversión:** `cvtColor(image, hsv, COLOR_BGR2HSV)`. En imágenes de 8 bits, OpenCV guarda el tono (H) en el rango 0–179 (grados divididos entre 2) y la saturación (S) y el valor (V) en 0–255.
 3. **Máscaras:** `inRange` pone a 255 los píxeles dentro del rango y a 0 el resto. Todos los rangos exigen S ≥ 100 y V ≥ 100 para descartar grises y zonas oscuras:
 
    | Color | Rango de H | Máscara |
    |---|---|---|
-   | Rojo | 0–10 y 160–179 | `maskRojo1 \| maskRojo2` |
-   | Verde | 35–85 | `maskVerde` |
-   | Azul | 100–130 | `maskAzul` |
+   | Rojo | 0–10 y 160–179 | `maskRed1 \| maskRed2` |
+   | Verde | 35–85 | `maskGreen` |
+   | Azul | 100–130 | `maskBlue` |
 
-4. **Aplicación:** `bitwise_and(image, image, rojo, maskRojo)` copia la imagen original solo donde la máscara vale 255, así que cada salida conserva los colores reales.
+4. **Aplicación:** `bitwise_and(image, image, red, maskRed)` copia la imagen original solo donde la máscara vale 255, así que cada salida conserva los colores reales.
 5. **Visualización:** `imshow` de las cuatro imágenes y `waitKey(0)`.
 
 ## Funciones OpenCV utilizadas
@@ -219,7 +219,6 @@ El programa ([`HSVFilter.cpp`](HSVFilter.cpp)) sigue estos pasos:
 
 - Los rangos están fijos en el código; para ajustarlos a otra imagen o a otra iluminación hay que editar los `Scalar` y recompilar.
 - Los tonos entre rangos (amarillos, cian, magentas) no aparecen en ninguna salida.
-- En caso de error devuelve `-1` (el sistema lo ve como `255`) en lugar de `EXIT_FAILURE`.
 
 ## Recursos de aprendizaje
 

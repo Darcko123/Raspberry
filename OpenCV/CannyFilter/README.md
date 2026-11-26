@@ -95,11 +95,11 @@ El programa se ejecuta desde `build/` porque abre `avatares.png` con una ruta re
 
 Se abren cinco ventanas:
 
-1. **Imagen Original**: la imagen cargada.
-2. **Imagen en Escala de Grises**.
+1. **Imagen original**: la imagen cargada.
+2. **Imagen en escala de grises**.
 3. **Filtro Gaussiano**: la imagen en grises suavizada.
 4. **Filtro Canny**: bordes blancos de un píxel de grosor sobre fondo negro.
-5. **Config**: los *trackbars* **Umbral Bajo Canny** (inicial 50) y **Umbral Alto Canny** (inicial 150).
+5. **Config**: los *trackbars* **Umbral bajo Canny** (inicial 50) y **Umbral alto Canny** (inicial 150).
 
 Al bajar los umbrales aparecen más bordes (y más ruido); al subirlos, solo quedan los contornos más marcados. El programa termina al pulsar **ESC** con una ventana seleccionada.
 
@@ -112,7 +112,7 @@ Desde `build/`:
 ```
 
 - Con el umbral bajo por encima del alto, OpenCV los intercambia internamente y el resultado no cambia al invertirlos. Tras salir con ESC debe mostrar `salida: 0`.
-- Si se ejecuta fuera de `build/`, debe imprimir `Error: No se pudo cargar la imagen 'avatares.png'` seguido de una lista de comprobaciones, y salir con `1`.
+- Si se ejecuta fuera de `build/`, debe imprimir `Error: No se pudo cargar la imagen 'avatares.png'` y salir con `1`.
 
 `RSS máx` es la memoria pico del proceso. `tiempo` incluye el rato que las ventanas quedan abiertas, así que solo sirve como cota.
 
@@ -185,12 +185,12 @@ Los umbrales se comparan con el módulo del gradiente, no con la intensidad de l
 
 El programa ([`CannyFilter.cpp`](CannyFilter.cpp)) prepara la imagen una vez y luego entra en un bucle:
 
-1. **Carga:** `imread("avatares.png")` (a color por defecto) y comprobación con `empty()`.
+1. **Carga:** `imread("avatares.png", IMREAD_COLOR)` y comprobación con `image.empty()`.
 2. **Preprocesamiento (una sola vez):** `cvtColor(..., COLOR_BGR2GRAY)` y `GaussianBlur` con *kernel* 3×3 y sigma 3 en X e Y.
 3. **Interfaz:** `namedWindow` crea **Config** y **Filtro Canny**, y `createTrackbar` asocia los dos *trackbars* a las variables `cannyLow` y `cannyHigh`.
 4. **Bucle principal:** en cada vuelta se aplica Canny con los valores actuales, se muestran las cuatro imágenes y se espera 30 ms a una tecla; con ESC (código 27) se sale:
    ```cpp
-   Canny(filtroGausiano, filtroCanny, cannyLow, cannyHigh, 3);
+   Canny(blurred, edges, cannyLow, cannyHigh, 3);
    int key = waitKey(30);
    if (key == 27) break;
    ```
@@ -214,7 +214,7 @@ El programa ([`CannyFilter.cpp`](CannyFilter.cpp)) prepara la imagen una vez y l
 - Canny se recalcula cada 30 ms aunque los umbrales no hayan cambiado, lo que mantiene la CPU ocupada mientras el programa está abierto.
 - Con sigma 3 sobre un *kernel* de solo 3×3, los pesos son casi iguales y el suavizado se parece más a un filtro de media que a uno Gaussiano.
 - Cerrar las ventanas con el ratón no termina el programa: `imshow` las vuelve a abrir en la siguiente vuelta. Hay que salir con ESC.
-- Con OpenCV 4.9 se muestra el aviso `createTrackbar ... Using 'value' pointer is unsafe and deprecated`, porque se pasa la variable por puntero. No afecta al funcionamiento.
+- Con OpenCV 4.6 y posteriores se muestra el aviso `createTrackbar ... Using 'value' pointer is unsafe and deprecated`, porque se pasa la variable por puntero. No afecta al funcionamiento.
 
 ## Recursos de aprendizaje
 

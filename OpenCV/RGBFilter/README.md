@@ -94,9 +94,9 @@ El programa se ejecuta desde `build/` porque abre `avatares.png` con una ruta re
 Se abren cuatro ventanas:
 
 1. **Imagen original**: la imagen cargada.
-2. **Canal Rojo**: solo los píxeles con el rojo dominante, con su valor de rojo; el resto, en negro.
-3. **Canal Verde**: lo mismo para el verde.
-4. **Canal Azul**: lo mismo para el azul.
+2. **Canal rojo**: solo los píxeles con el rojo dominante, con su valor de rojo; el resto, en negro.
+3. **Canal verde**: lo mismo para el verde.
+4. **Canal azul**: lo mismo para el azul.
 
 Los píxeles grises, blancos o negros (sin un canal claramente mayor) no aparecen en ninguna salida. Al pulsar cualquier tecla con una ventana seleccionada, el programa termina.
 
@@ -109,7 +109,7 @@ Desde `build/`:
 ```
 
 - Tras cerrar con una tecla debe mostrar `salida: 0`.
-- Si se ejecuta fuera de `build/`, debe imprimir `Error: No se pudo abrir o encontrar la imagen.` y salir con `255` (el código devuelve `-1`).
+- Si se ejecuta fuera de `build/`, debe imprimir `Error: No se pudo cargar la imagen 'avatares.png'` y salir con `1`.
 
 `RSS máx` es la memoria pico del proceso. `tiempo` incluye el rato que las ventanas quedan abiertas, así que solo sirve como cota.
 
@@ -170,13 +170,13 @@ La solución habitual es cambiar a un espacio de color que separe el tono del br
 El programa ([`RGBFilter.cpp`](RGBFilter.cpp)) sigue estos pasos:
 
 1. **Carga:** `imread("avatares.png", IMREAD_COLOR)` y comprobación con `image.empty()`.
-2. **Imágenes de salida:** `Mat::zeros(image.size(), image.type())` crea `rojo`, `verde` y `azul` del mismo tamaño y tipo (`CV_8UC3`) que la original, todas en negro.
+2. **Imágenes de salida:** `Mat::zeros(image.size(), image.type())` crea `red`, `green` y `blue` del mismo tamaño y tipo (`CV_8UC3`) que la original, todas en negro.
 3. **Recorrido:** dos bucles anidados (filas `y`, columnas `x`) leen cada píxel como `Vec3b`. OpenCV guarda los canales en orden **BGR**, así que `pixel[0]` es el azul y `pixel[2]` el rojo:
    ```cpp
    Vec3b pixel = image.at<Vec3b>(y, x);
    uchar b = pixel[0], g = pixel[1], r = pixel[2];
    ```
-4. **Clasificación:** si un canal es estrictamente mayor que los otros dos, se escribe solo ese canal en su imagen de salida (por ejemplo, `Vec3b(0, 0, r)` en `rojo`). Si hay empate, el píxel queda en negro en las tres.
+4. **Clasificación:** si un canal es estrictamente mayor que los otros dos, se escribe solo ese canal en su imagen de salida (por ejemplo, `Vec3b(0, 0, r)` en `red`). Si hay empate, el píxel queda en negro en las tres.
 5. **Visualización:** `imshow` de las cuatro imágenes y `waitKey(0)`.
 
 ## Funciones OpenCV utilizadas
@@ -193,7 +193,6 @@ El programa ([`RGBFilter.cpp`](RGBFilter.cpp)) sigue estos pasos:
 
 - El recorrido píxel a píxel con `at<>` y ramas `if` no aprovecha las instrucciones vectoriales (NEON) de la Raspberry Pi. Es didáctico, pero bastante más lento que las operaciones de OpenCV sobre la matriz completa (`split`, `compare`, `max`).
 - La regla de "canal estrictamente mayor" clasifica como rojo un píxel casi gris como `(100, 100, 101)`. No hay umbral de saturación; el ejemplo [HSVFilter](../HSVFilter/) resuelve esto trabajando en HSV.
-- En caso de error devuelve `-1` (el sistema lo ve como `255`) en lugar de `EXIT_FAILURE`.
 
 ## Recursos de aprendizaje
 

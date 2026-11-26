@@ -94,7 +94,7 @@ El programa se ejecuta desde `build/` porque abre `avatares.png` con una ruta re
 
 Se abren dos ventanas:
 
-1. **Imagen Original**: la imagen en escala de grises con los *trackbars* **Brillo** y **Contraste**.
+1. **Imagen original**: la imagen en escala de grises con los *trackbars* **Brillo** y **Contraste**.
 2. **Histograma**: una curva azul de 512×400 píxeles con la distribución de los 256 niveles de gris.
 
 Al subir el brillo, la curva se desplaza a la derecha; al subir el contraste, se ensancha y se acumula en los extremos (0 y 255). Al pulsar cualquier tecla con una ventana seleccionada, el programa termina.
@@ -108,7 +108,7 @@ Desde `build/`:
 ```
 
 - Con los dos *trackbars* en 100, la imagen debe verse igual que la original en grises (la fórmula da `a = 256/255`, así que algunos píxeles cambian como mucho 1 nivel). Tras cerrar con una tecla debe mostrar `salida: 0`.
-- Si se ejecuta fuera de `build/`, debe imprimir `Error: No se pudo cargar la imagen.` y salir con `1`.
+- Si se ejecuta fuera de `build/`, debe imprimir `Error: No se pudo cargar la imagen 'avatares.png'` y salir con `1`.
 
 `RSS máx` es la memoria pico del proceso. `tiempo` incluye el rato que las ventanas quedan abiertas, así que solo sirve como cota.
 
@@ -189,7 +189,7 @@ g = \operatorname{round}\left( 255 \sum_{j=0}^{f} p(j) \right)
 El programa ([`HistogramBrightnessContrast.cpp`](HistogramBrightnessContrast.cpp)) se organiza en `main` y una función *callback*:
 
 1. **`main`:** carga la imagen con `imread("avatares.png", IMREAD_GRAYSCALE)`, crea las ventanas, registra los dos *trackbars* con `updateBrightnessContrast` como *callback*, la llama una vez para dibujar el estado inicial y espera con `waitKey(0)`. Mientras espera, `waitKey` procesa los eventos de los *trackbars*.
-2. **Parámetros de la transformación** (`updateBrightnessContrast`): los valores se centran en 0 (`brillo = _brightness − 100`, `contraste = _contrast − 100`) y se calculan `a` (ganancia) y `b` (desplazamiento), según la fórmula de Werner D. Streidt:
+2. **Parámetros de la transformación** (`updateBrightnessContrast`): los valores se centran en 0 (`brillo = brightnessTrackbar − 100`, `contraste = contrastTrackbar − 100`) y se calculan `a` (ganancia) y `b` (desplazamiento), según la fórmula de Werner D. Streidt:
    - **Contraste > 0:** `δ = 127·c/100`, `a = 255 / (255 − 2δ)`, `b = a·(brillo − δ)`. Como `a > 1`, el rango `[δ, 255 − δ]` se estira hasta `[0, 255]` y aumenta el contraste.
    - **Contraste ≤ 0:** `δ = −128·c/100`, `a = (256 − 2δ) / 255`, `b = a·brillo + δ`. Como `a ≤ 1`, todo el rango se comprime hacia el centro y disminuye el contraste.
 3. **Aplicación:** `image.convertTo(dst, CV_8U, a, b)` calcula `a·src + b` y satura el resultado a 0–255.
@@ -211,9 +211,9 @@ El programa ([`HistogramBrightnessContrast.cpp`](HistogramBrightnessContrast.cpp
 
 ## Limitaciones conocidas
 
-- El estado se guarda en variables globales (`image`, `hist`, `_brightness`, `_contrast`) porque el *callback* no recibe datos propios (`userdata` es `0`).
+- El estado se guarda en variables globales (`image`, `hist`, `brightnessTrackbar`, `contrastTrackbar`) porque el *callback* no recibe datos propios (`userdata` es `nullptr`).
 - El histograma se normaliza a su propio máximo en cada cambio, así que la altura de la curva es relativa: no sirve para comparar el número absoluto de píxeles entre dos ajustes.
-- Con OpenCV 4.9 se muestra el aviso `createTrackbar ... Using 'value' pointer is unsafe and deprecated`, porque se pasa la variable por puntero. No afecta al funcionamiento.
+- Con OpenCV 4.6 y posteriores se muestra el aviso `createTrackbar ... Using 'value' pointer is unsafe and deprecated`, porque se pasa la variable por puntero. No afecta al funcionamiento.
 
 ## Recursos de aprendizaje
 

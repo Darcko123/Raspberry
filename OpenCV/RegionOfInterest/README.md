@@ -39,7 +39,7 @@ Muestra cuatro formas de quedarse solo con una parte de la imagen: un recorte re
 
 ## Características
 
-- Selección interactiva de un rectángulo con `selectROI` y recorte con `image(r)`.
+- Selección interactiva de un rectángulo con `selectROI` y recorte con `image(roi)`.
 - Máscara poligonal (rombo) con `fillConvexPoly`.
 - Máscara rectangular con `rectangle` y máscara circular con `circle`.
 - Aplicación de las máscaras con `copyTo` y guardado de los 4 resultados con `imwrite`.
@@ -93,10 +93,10 @@ El programa se ejecuta desde `build/` porque abre `avatares.png` con una ruta re
 
 1. Se abre la ventana **ROI selector** con la imagen completa. Arrastre el ratón para dibujar un rectángulo y confirme con **ESPACIO** o **ENTER**.
 2. A continuación se abren a la vez cuatro ventanas:
-   - **ROI Manual**: el recorte seleccionado, con su tamaño real.
-   - **ROI Poligonal**: la imagen completa en negro salvo un rombo central.
-   - **ROI Rectangular**: en negro salvo el rectángulo central (la mitad del ancho y del alto).
-   - **ROI Circular**: en negro salvo un círculo central de radio igual al 25 % del lado menor.
+   - **ROI manual**: el recorte seleccionado, con su tamaño real.
+   - **ROI poligonal**: la imagen completa en negro salvo un rombo central.
+   - **ROI rectangular**: en negro salvo el rectángulo central (la mitad del ancho y del alto).
+   - **ROI circular**: en negro salvo un círculo central de radio igual al 25 % del lado menor.
 3. Al pulsar cualquier tecla con una ventana seleccionada, el programa termina.
 
 Los cuatro resultados se guardan en `build/` como `roi_image_target.jpg`, `roi_image_Polygon.jpg`, `roi_image_Rectangular.jpg` y `roi_image_Circular.jpg` (el `.gitignore` del repositorio los excluye).
@@ -111,7 +111,7 @@ ls roi_image_*.jpg
 ```
 
 - Tras cerrar con una tecla debe mostrar `salida: 0`, y `ls` debe listar los 4 archivos.
-- Si se ejecuta fuera de `build/`, debe imprimir `Error: No se pudo cargar la imagen.` y salir con `255` (el código devuelve `-1`).
+- Si se ejecuta fuera de `build/`, debe imprimir `Error: No se pudo cargar la imagen 'avatares.png'` y salir con `1`.
 
 `RSS máx` es la memoria pico del proceso. `tiempo` incluye el rato que las ventanas quedan abiertas, así que solo sirve como cota.
 
@@ -131,9 +131,9 @@ Un rectángulo $(x_0, y_0, w, h)$ dentro de la imagen se representa con otra cab
 \text{data}_{\text{ROI}} = \text{data} + y_0 \cdot \text{step} + x_0 \cdot C, \qquad \text{step}_{\text{ROI}} = \text{step}
 ```
 
-`image(r)` solo calcula ese puntero y conserva el `step` de la imagen original para saltar de una fila a la siguiente. Es O(1) en tiempo y en memoria, sea cual sea el tamaño del recorte, y cualquier función que reciba la ROI procesa solo sus $w \cdot h$ píxeles. Tiene dos consecuencias:
+`image(roi)` solo calcula ese puntero y conserva el `step` de la imagen original para saltar de una fila a la siguiente. Es O(1) en tiempo y en memoria, sea cual sea el tamaño del recorte, y cualquier función que reciba la ROI procesa solo sus $w \cdot h$ píxeles. Tiene dos consecuencias:
 
-- La ROI **comparte** los píxeles con la imagen: escribir en `imCrop` modifica `image`. Para separarlas hace falta `imCrop.clone()`.
+- La ROI **comparte** los píxeles con la imagen: escribir en `crop` modifica `image`. Para separarlas hace falta `crop.clone()`.
 - Salvo que ocupe filas completas, la ROI no es continua en memoria (`isContinuous()` devuelve `false`), porque entre el final de una de sus filas y el principio de la siguiente está el resto de la fila de la imagen. Las funciones de OpenCV lo tienen en cuenta y la recorren fila a fila.
 
 #### ROI de forma arbitraria: máscaras
@@ -169,7 +169,7 @@ Las tres máscaras cubren como mucho un cuarto de la imagen, pero no ahorran có
 | Matriz | Tamaño |
 |---|---|
 | `image` (BGR) | 1,08 MB |
-| `imCrop` | 0 bytes de píxeles (vista sobre `image`) |
+| `crop` | 0 bytes de píxeles (vista sobre `image`) |
 | 3 máscaras de 1 canal | 3 × 360 KB = 1,08 MB |
 | 3 salidas BGR | 3 × 1,08 MB = 3,24 MB |
 | **Total** | **≈ 5,4 MB** |
@@ -182,9 +182,9 @@ Cada `imwrite` añade el coste de codificar un JPEG (ver [LoadImage](../LoadImag
 
 El programa ([`RegionOfInterest.cpp`](RegionOfInterest.cpp)) carga `avatares.png`, guarda su ancho (`cols`) y alto (`rows`), y aplica cuatro métodos uno detrás de otro:
 
-1. **ROI manual:** `selectROI(image)` devuelve el rectángulo dibujado y `image(r)` lo recorta. El recorte es una **vista** sobre los datos de la imagen original, no una copia.
-2. **ROI poligonal:** se definen 4 vértices en los puntos medios de la imagen (el código lo llama trapecio, pero la figura es un rombo), `fillConvexPoly` los rellena con 255 en una máscara de un canal y `image.copyTo(poligonalResult, mask)` copia solo los píxeles de dentro.
-3. **ROI rectangular:** `Rect roi_rect(cols·0,25, rows·0,25, cols·0,5, rows·0,5)`, dibujado relleno (grosor `-1`) en una máscara con `rectangle`, y el mismo `copyTo`.
+1. **ROI manual:** `selectROI(image)` devuelve el rectángulo dibujado y `image(roi)` lo recorta. El recorte es una **vista** sobre los datos de la imagen original, no una copia.
+2. **ROI poligonal:** se definen 4 vértices en los puntos medios de la imagen, que forman un rombo; `fillConvexPoly` los rellena con 255 en una máscara de un canal y `image.copyTo(polygonResult, polygonMask)` copia solo los píxeles de dentro.
+3. **ROI rectangular:** `Rect roiRect(cols·0,25, rows·0,25, cols·0,5, rows·0,5)`, dibujado relleno (grosor `-1`) en una máscara con `rectangle`, y el mismo `copyTo`.
 4. **ROI circular:** `circle` con centro en el centro de la imagen y radio `min(cols, rows)·0,25`, relleno en una máscara, y el mismo `copyTo`.
 
 Cada resultado se muestra con `imshow` y se guarda con `imwrite`. Al final, `waitKey(0)` espera una tecla.
@@ -207,9 +207,8 @@ Cada resultado se muestra con `imshow` y se guarda con `imwrite`. Al final, `wai
 
 ## Limitaciones conocidas
 
-- Si se cancela la selección (tecla `c`) o se confirma sin dibujar nada, `selectROI` devuelve un rectángulo vacío, `image(r)` produce una `Mat` vacía y `imshow` la rechaza: el programa termina con una excepción de OpenCV.
+- Si se cancela la selección (tecla `c`) o se confirma sin dibujar nada, `selectROI` devuelve un rectángulo vacío, `image(roi)` produce una `Mat` vacía y `imshow` la rechaza: el programa termina con una excepción de OpenCV.
 - Las tres máscaras usan proporciones fijas del tamaño de la imagen; no se pueden ajustar sin recompilar.
-- En caso de error devuelve `-1` (el sistema lo ve como `255`) en lugar de `EXIT_FAILURE`, y escribe el mensaje por `cout` en lugar de `cerr`.
 
 ## Recursos de aprendizaje
 

@@ -93,7 +93,7 @@ El programa se ejecuta desde `build/` porque abre `avatares.png` con una ruta re
 
 ### Resultado esperado
 
-Se abre una sola ventana, **Filtro Laplaciano - Detección de Bordes**, con fondo casi negro y los contornos de la imagen en tonos claros. No se muestra la imagen original. Al pulsar cualquier tecla con la ventana seleccionada, el programa termina.
+Se abre una sola ventana, **Filtro Laplaciano - Detección de bordes**, con fondo casi negro y los contornos de la imagen en tonos claros. No se muestra la imagen original. Al pulsar cualquier tecla con la ventana seleccionada, el programa termina.
 
 ### Verificación
 
@@ -181,10 +181,10 @@ Y = 0{,}299 \, R + 0{,}587 \, G + 0{,}114 \, B
 
 | Matriz | Tamaño |
 |---|---|
-| `imagenOriginal` (BGR, se suaviza sobre sí misma) | 1,08 MB |
-| `grayImage` | 360 KB |
+| `image` (BGR, se suaviza sobre sí misma) | 1,08 MB |
+| `gray` | 360 KB |
 | `laplacian16S` (2 bytes por píxel) | 720 KB |
-| `laplacianResult` | 360 KB |
+| `laplacian` | 360 KB |
 | **Total** | **≈ 2,5 MB** |
 
 - **Orden de las operaciones:** el ejemplo suaviza la imagen a color y después la pasa a gris. La conversión a gris y el filtro Gaussiano son lineales, así que el orden no cambia el resultado (salvo por el redondeo), pero suavizar después de convertir procesa 1 canal en lugar de 3: la tercera parte del trabajo del suavizado.
@@ -196,16 +196,16 @@ Y = 0{,}299 \, R + 0{,}587 \, G + 0{,}114 \, B
 
 El programa ([`LaplacianFilter.cpp`](LaplacianFilter.cpp)) sigue estos pasos:
 
-1. **Carga:** `imread("avatares.png", IMREAD_COLOR)` y comprobación con `empty()`.
-2. **Suavizado:** `GaussianBlur` de 3×3 con sigma automática, aplicado sobre la propia imagen original (entrada y salida son la misma `Mat`).
+1. **Carga:** `imread("avatares.png", IMREAD_COLOR)` y comprobación con `image.empty()`.
+2. **Suavizado:** `GaussianBlur` de 3×3 con sigma automática, aplicado sobre la propia `image` (entrada y salida son la misma `Mat`).
 3. **Escala de grises:** `cvtColor(..., COLOR_BGR2GRAY)`.
 4. **Laplaciano:**
    ```cpp
-   Laplacian(grayImage, laplacian16S, CV_16S, 3, 1, 0, BORDER_DEFAULT);
+   Laplacian(gray, laplacian16S, CV_16S, 3, 1, 0, BORDER_DEFAULT);
    ```
    La salida es `CV_16S` porque la segunda derivada de una imagen de 8 bits toma valores negativos y mayores que 255; con `CV_8U` se recortarían y se perderían la mitad de los bordes.
 5. **Vuelta a 8 bits:** `convertScaleAbs` toma el valor absoluto y satura a 0–255, para que los dos lados de cada borde se vean claros.
-6. **Visualización:** `imshow` del resultado y `waitKey(0)`. La línea `imwrite("bordes_laplaciano.jpg", ...)` está comentada; al descomentarla, el resultado se guarda en `build/`.
+6. **Visualización:** `imshow` del resultado y `waitKey(0)`.
 
 ## Funciones OpenCV utilizadas
 
@@ -218,7 +218,6 @@ El programa ([`LaplacianFilter.cpp`](LaplacianFilter.cpp)) sigue estos pasos:
 | `convertScaleAbs` | core | Valor absoluto y conversión a 8 bits |
 | `imshow` | highgui | Muestra los bordes |
 | `waitKey` | highgui | Espera una tecla y procesa los eventos de la ventana |
-| `imwrite` (comentada) | imgcodecs | Guardaría el resultado en disco |
 
 ## Limitaciones conocidas
 

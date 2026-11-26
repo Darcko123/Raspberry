@@ -68,7 +68,7 @@ OpenCV/
     └── haarcascade_frontalface_alt.xml
 ```
 
-Todos los READMEs de los ejemplos tienen las mismas secciones, en el mismo orden que [`_PLANTILLA/README.md`](_PLANTILLA/README.md). Para crear un ejemplo nuevo, copie [`_PLANTILLA/`](_PLANTILLA/) y renombre la carpeta, el `.cpp` y el `project()` del `CMakeLists.txt` con el mismo nombre.
+Todos los READMEs de los ejemplos tienen las mismas secciones, en el mismo orden que [`_PLANTILLA/README.md`](_PLANTILLA/README.md). Para crear un ejemplo nuevo, copie [`_PLANTILLA/`](_PLANTILLA/) y renombre la carpeta, el `.cpp` y el `project()` del `CMakeLists.txt` con el mismo nombre. El código de todos los ejemplos sigue las convenciones que lista la cabecera de [`_PLANTILLA.cpp`](_PLANTILLA/_PLANTILLA.cpp) y se compila con `-Wall -Wextra`.
 
 [`scripts/opencv-build-all.sh`](../scripts/opencv-build-all.sh) compila todos los ejemplos (y la plantilla) y comprueba la regla de nombres, los encabezados de los READMEs y los enlaces relativos; sale con 1 si algo falla.
 
