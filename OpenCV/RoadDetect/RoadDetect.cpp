@@ -189,7 +189,7 @@ int main()
         capture.set(CAP_PROP_FPS, 60);            // Frames por segundo
         capture.set(CAP_PROP_BRIGHTNESS, 128);    // Brillo (0-255)
         capture.set(CAP_PROP_CONTRAST, 128);      // Contraste (0-255)
-        capture >> frame;  // Primer frame: some cámaras abren pero no entregan imagen
+        capture >> frame;  // Primer frame: algunas cámaras abren pero no entregan imagen
     } else {
         cerr << "Aviso: No se pudo abrir la cámara; se prueba con una imagen de assets/." << endl;
     }
@@ -267,9 +267,11 @@ int main()
         // =============================================
         processLines(frame, roiImage, houghResult, roiVertices);
 
-        imshow("imagen original", frame);
-        imshow("región de interés (ROI)", roiImage);
-        imshow("líneas detectadas", houghResult);
+        // Títulos sin acentos: con el backend Qt de OpenCV 4.6 una ventana con acentos queda negra
+        // y sin el tamaño de la imagen.
+        imshow("Imagen original", frame);
+        imshow("Region de interes (ROI)", roiImage);
+        imshow("Lineas detectadas", houghResult);
 
         // =============================================
         // Salida
