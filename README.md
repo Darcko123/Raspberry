@@ -42,6 +42,7 @@ Raspberry/
 │   ├── README.md                    # Índice de ejemplos
 │   ├── INSTALACION.md               # Tutorial de instalación de OpenCV
 │   ├── assets/                      # Imagen compartida por los ejemplos
+│   ├── _PLANTILLA/                  # Molde para crear un ejemplo nuevo
 │   ├── HelloWorld/
 │   ├── LoadImage/
 │   ├── RGBFilter/
