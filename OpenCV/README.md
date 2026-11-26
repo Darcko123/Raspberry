@@ -33,8 +33,9 @@ En orden de aprendizaje: cada ejemplo usa conceptos de los anteriores.
 | 8 | [CannyFilter](CannyFilter/) | Detectar bordes con Canny y ajustar sus umbrales en vivo | Imagen |
 | 9 | [RegionOfInterest](RegionOfInterest/) | Seleccionar y recortar regiones de interés (ROI) | Imagen |
 | 10 | [FaceDetect](FaceDetect/) | Detectar rostros con un clasificador Haar en cascada | Cámara |
+| 11 | [RoadDetect](RoadDetect/) | Detectar las líneas del carril con Canny y Hough | Cámara |
 
-Los ejemplos con imagen usan [assets/avatares.png](assets/avatares.png), que CMake copia a la carpeta `build/` de cada ejemplo.
+Los ejemplos con imagen usan [assets/avatares.png](assets/avatares.png), que CMake copia a la carpeta `build/` de cada ejemplo. En [assets/](assets/) también están los tres fotogramas de carretera de referencia de `RoadDetect` (`carretera2_1.jpg`, `carretera3_1.jpg` y `carretera4_1.jpg`); el programa lee la cámara, no los archivos.
 
 ## Estructura
 
@@ -45,7 +46,8 @@ OpenCV/
 ├── README.md                  # Este índice
 ├── INSTALACION.md             # Tutorial de instalación de OpenCV
 ├── assets/
-│   └── avatares.png           # Imagen compartida por los ejemplos
+│   ├── avatares.png           # Imagen compartida por los ejemplos
+│   └── carretera*.jpg         # Fotogramas de carretera de referencia (RoadDetect)
 ├── _PLANTILLA/                # Molde para crear un ejemplo nuevo
 ├── HelloWorld/
 │   ├── README.md              # Compilación, prueba y explicación del ejemplo
@@ -60,12 +62,17 @@ OpenCV/
 ├── LaplacianFilter/
 ├── CannyFilter/
 ├── RegionOfInterest/
-└── FaceDetect/
+├── FaceDetect/
+│   ├── README.md
+│   ├── FaceDetect.cpp
+│   ├── CMakeLists.txt
+│   ├── build.sh
+│   └── haarcascade_frontalface_alt.xml
+└── RoadDetect/
     ├── README.md
-    ├── FaceDetect.cpp
+    ├── RoadDetect.cpp
     ├── CMakeLists.txt
-    ├── build.sh
-    └── haarcascade_frontalface_alt.xml
+    └── build.sh
 ```
 
 Todos los READMEs de los ejemplos tienen las mismas secciones, en el mismo orden que [`_PLANTILLA/README.md`](_PLANTILLA/README.md). Para crear un ejemplo nuevo, copie [`_PLANTILLA/`](_PLANTILLA/) y renombre la carpeta, el `.cpp` y el `project()` del `CMakeLists.txt` con el mismo nombre. El código de todos los ejemplos sigue las convenciones que lista la cabecera de [`_PLANTILLA.cpp`](_PLANTILLA/_PLANTILLA.cpp) y se compila con `-Wall -Wextra`.
@@ -74,7 +81,7 @@ Todos los READMEs de los ejemplos tienen las mismas secciones, en el mismo orden
 
 ## Requisitos
 
-- **Hardware:** Raspberry Pi 5 o Raspberry Pi Zero 2W (o cualquier equipo Linux), con pantalla o sesión gráfica para las ventanas de `imshow`. `FaceDetect` necesita además una cámara.
+- **Hardware:** Raspberry Pi 5 o Raspberry Pi Zero 2W (o cualquier equipo Linux), con pantalla o sesión gráfica para las ventanas de `imshow`. `FaceDetect` y `RoadDetect` necesitan además una cámara.
 - **Software:** OpenCV 4.x (vale el `libopencv-dev` 4.6 de apt), CMake 3.12 o superior y un compilador de C++11. Ver [INSTALACION.md](INSTALACION.md).
 
 ## Cómo empezar
