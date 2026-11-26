@@ -55,25 +55,38 @@ int main()
     namedWindow("Filtro Canny", WINDOW_AUTOSIZE);  // Ventana para el resultado Canny
 
     // Crear trackbars para ajustar los umbrales del filtro Canny
-    createTrackbar("Umbral bajo Canny", "Config", &cannyLow, 255);
-    createTrackbar("Umbral alto Canny", "Config", &cannyHigh, 255);
+    // (sin puntero de valor, que está obsoleto: la posición se fija y se lee con las funciones *TrackbarPos)
+    createTrackbar("Umbral bajo Canny", "Config", nullptr, 255);
+    createTrackbar("Umbral alto Canny", "Config", nullptr, 255);
+    setTrackbarPos("Umbral bajo Canny", "Config", cannyLow);
+    setTrackbarPos("Umbral alto Canny", "Config", cannyHigh);
+
+    // Las tres primeras imágenes no cambian: se muestran una sola vez
+    imshow("Imagen original", image);
+    imshow("Imagen en escala de grises", gray);
+    imshow("Filtro Gaussiano", blurred);
 
     // =============================================
     // Bucle principal
     // =============================================
     Mat edges;
+    int lastLow = -1;   // Umbrales del último resultado mostrado (-1: aún no hay ninguno)
+    int lastHigh = -1;
     while (true) {
-        // Aplicar el filtro Canny con los valores actuales de los trackbars
-        Canny(blurred, edges,
-              cannyLow,   // Umbral bajo para la detección de bordes
-              cannyHigh,  // Umbral alto para la detección de bordes
-              3);         // Apertura del operador de Sobel
+        // Leer los valores actuales de los trackbars
+        cannyLow = getTrackbarPos("Umbral bajo Canny", "Config");
+        cannyHigh = getTrackbarPos("Umbral alto Canny", "Config");
 
-        // Mostrar las imágenes
-        imshow("Imagen original", image);
-        imshow("Imagen en escala de grises", gray);
-        imshow("Filtro Gaussiano", blurred);
-        imshow("Filtro Canny", edges);
+        // Recalcular Canny solo si cambió algún umbral
+        if (cannyLow != lastLow || cannyHigh != lastHigh) {
+            Canny(blurred, edges,
+                  cannyLow,   // Umbral bajo para la detección de bordes
+                  cannyHigh,  // Umbral alto para la detección de bordes
+                  3);         // Apertura del operador de Sobel
+            imshow("Filtro Canny", edges);
+            lastLow = cannyLow;
+            lastHigh = cannyHigh;
+        }
 
         // Esperar 30 ms por una tecla; ESC (código 27) sale del bucle
         int key = waitKey(30);

@@ -177,7 +177,7 @@ Los umbrales se comparan con el módulo del gradiente, no con la intensidad de l
 ### Coste en la Raspberry Pi
 
 - **Memoria:** la original en BGR (1,08 MB) y tres imágenes de un canal (gris, suavizada y bordes, 3 × 360 KB), unos 2,2 MB, más los búferes internos de `Canny` para el gradiente.
-- **Cómputo y energía:** el bucle llama a `Canny` y a los cuatro `imshow` cada 30 ms, unas 33 veces por segundo, aunque nadie toque los *trackbars*, y repinta cuatro ventanas con imágenes que no han cambiado. En una Pi alimentada con batería, eso es consumo continuo para un resultado constante. Lo eficiente sería recalcular solo cuando cambia un umbral, en el *callback* del *trackbar* como hace [HistogramBrightnessContrast](../HistogramBrightnessContrast/), y dejar la CPU en reposo con `waitKey(0)`.
+- **Cómputo y energía:** las tres primeras imágenes se muestran una sola vez y `Canny` solo se recalcula cuando cambia un umbral. El bucle sigue despertando cada 30 ms para leer los *trackbars* (unas 33 veces por segundo), pero cada vuelta sin cambios se reduce a dos `getTrackbarPos` y un `waitKey`, así que la CPU queda casi en reposo. Lo ideal para una batería sería un *callback* del *trackbar*, como hace [HistogramBrightnessContrast](../HistogramBrightnessContrast/), y `waitKey(0)`.
 
 **Medido** en una Raspberry Pi 5 con OpenCV 4.9 (mediana de 3 ejecuciones, con las ventanas abiertas): `RSS máx` = 52.128 kB, 20,7 MB más que [LoadImage](../LoadImage/), que carga la misma imagen y abre una sola ventana. Las matrices solo añaden 1,1 MB: el resto son las tres ventanas de imagen adicionales, la ventana `Config` con sus *trackbars* y los búferes internos de `Canny`. Es el ejemplo que más memoria usa de los que se pueden medir sin cámara.
 
@@ -187,8 +187,8 @@ El programa ([`CannyFilter.cpp`](CannyFilter.cpp)) prepara la imagen una vez y l
 
 1. **Carga:** `imread("avatares.png", IMREAD_COLOR)` y comprobación con `image.empty()`.
 2. **Preprocesamiento (una sola vez):** `cvtColor(..., COLOR_BGR2GRAY)` y `GaussianBlur` con *kernel* 3×3 y sigma 3 en X e Y.
-3. **Interfaz:** `namedWindow` crea **Config** y **Filtro Canny**, y `createTrackbar` asocia los dos *trackbars* a las variables `cannyLow` y `cannyHigh`.
-4. **Bucle principal:** en cada vuelta se aplica Canny con los valores actuales, se muestran las cuatro imágenes y se espera 30 ms a una tecla; con ESC (código 27) se sale:
+3. **Interfaz:** `namedWindow` crea **Config** y **Filtro Canny**, y `createTrackbar` crea los dos *trackbars* y `setTrackbarPos` fija su posición inicial (`cannyLow` y `cannyHigh`). Se muestran una sola vez la original, la de grises y la suavizada.
+4. **Bucle principal:** en cada vuelta se leen los umbrales con `getTrackbarPos`; solo si han cambiado se aplica Canny y se muestra el resultado. Después se espera 30 ms a una tecla; con ESC (código 27) se sale:
    ```cpp
    Canny(blurred, edges, cannyLow, cannyHigh, 3);
    int key = waitKey(30);
@@ -205,16 +205,16 @@ El programa ([`CannyFilter.cpp`](CannyFilter.cpp)) prepara la imagen una vez y l
 | `GaussianBlur` | imgproc | Suaviza antes de calcular el gradiente |
 | `namedWindow` | highgui | Crea la ventana de controles y la del resultado |
 | `createTrackbar` | highgui | Crea los controles de los dos umbrales |
+| `setTrackbarPos` / `getTrackbarPos` | highgui | Fijan la posición inicial y leen el valor de los umbrales |
 | `Canny` | imgproc | Detecta los bordes con histéresis |
-| `imshow` | highgui | Muestra las cuatro etapas |
+| `imshow` | highgui | Muestra las cuatro etapas (Canny solo cuando cambian los umbrales) |
 | `waitKey` | highgui | Espera 30 ms a una tecla y procesa los eventos |
 
 ## Limitaciones conocidas
 
-- Canny se recalcula cada 30 ms aunque los umbrales no hayan cambiado, lo que mantiene la CPU ocupada mientras el programa está abierto.
+- Los *trackbars* se consultan por sondeo cada 30 ms, no con un *callback*.
 - Con sigma 3 sobre un *kernel* de solo 3×3, los pesos son casi iguales y el suavizado se parece más a un filtro de media que a uno Gaussiano.
-- Cerrar las ventanas con el ratón no termina el programa: `imshow` las vuelve a abrir en la siguiente vuelta. Hay que salir con ESC.
-- Con OpenCV 4.6 y posteriores se muestra el aviso `createTrackbar ... Using 'value' pointer is unsafe and deprecated`, porque se pasa la variable por puntero. No afecta al funcionamiento.
+- Cerrar las ventanas con el ratón no termina el programa y no se vuelven a abrir. Hay que salir con ESC, con alguna ventana con el foco.
 
 ## Recursos de aprendizaje
 
