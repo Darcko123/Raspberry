@@ -41,7 +41,7 @@ Raspberry/
 ├── OpenCV/        # Programas de procesamiento de imágenes y visión por computadora
 │   ├── README.md                    # Índice de ejemplos
 │   ├── INSTALACION.md               # Tutorial de instalación de OpenCV
-│   ├── assets/                      # Imagen compartida por los ejemplos
+│   ├── assets/                      # Imágenes compartidas por los ejemplos (avatares.png, carretera*.jpg)
 │   ├── _PLANTILLA/                  # Molde para crear un ejemplo nuevo
 │   ├── HelloWorld/
 │   ├── LoadImage/
@@ -53,7 +53,7 @@ Raspberry/
 │   ├── CannyFilter/
 │   ├── RegionOfInterest/
 │   ├── FaceDetect/
-│   ├── RoadDetect/
+│   └── RoadDetect/
 │
 ├── scripts/
 │   ├── opencv-build-all.sh          # Compila y verifica los ejemplos de OpenCV
