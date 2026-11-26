@@ -114,9 +114,9 @@ El programa intenta abrir la cámara; si no lo consigue o no entrega ningún fot
 
 Se abren tres ventanas:
 
-1. **imagen original**: el fotograma tal como llega de la cámara.
-2. **región de interés (ROI)**: bordes de Canny dentro del trapecio, en blanco sobre fondo negro; fuera de la ROI todo queda a cero.
-3. **líneas detectadas**: copia del fotograma con el trapecio en magenta, la línea izquierda en azul y la derecha en rojo. Si no hay segmentos, aparece `No se detectaron lineas`; si falta un lado, aparece `No hay linea izquierda` o `No hay linea derecha`.
+1. **Imagen original**: el fotograma tal como llega de la cámara.
+2. **Region de interes (ROI)**: bordes de Canny dentro del trapecio, en blanco sobre fondo negro; fuera de la ROI todo queda a cero.
+3. **Lineas detectadas**: copia del fotograma con el trapecio en magenta, la línea izquierda en azul y la derecha en rojo. Si no hay segmentos, aparece `No se detectaron lineas`; si falta un lado, aparece `No hay linea izquierda` o `No hay linea derecha`.
 
 Con cámara, al pulsar **q** o **ESC** con alguna ventana seleccionada imprime `Saliendo del programa...` y termina un segundo después. Sin cámara, imprime `Aviso: No se pudo abrir la cámara; se prueba con una imagen de assets/` o `Aviso: Usando 'carretera2_1.jpg' en lugar de la cámara.`, muestra las mismas tres ventanas con la foto y termina al pulsar cualquier tecla.
 
@@ -218,7 +218,7 @@ En total, unas 3,8 MiB de matrices por fotograma, más los búferes internos de 
 
 ## Descripción del Código
 
-El programa ([`RoadDetect.cpp`](RoadDetect.cpp)) tiene seis funciones auxiliares `static`, definidas antes de `main`, y un bucle de captura:
+El programa ([`RoadDetect.cpp`](RoadDetect.cpp)) tiene seis funciones auxiliares `static`, con los prototipos antes de `main` y las definiciones después, y un bucle de captura:
 
 1. **Entrada:** `VideoCapture capture(0)` y comprobación con `isOpened()`; se piden 640×480, 60 FPS, brillo 128 y contraste 128. Se lee un primer frame porque algunas cámaras abren pero no entregan imagen. Si no hay cámara o el frame está vacío, `loadFallbackImage` prueba las tres fotos de `build/` con `imread` y avisa de cuál usa; si no hay ninguna, termina con `EXIT_FAILURE`.
 2. **Máscaras:** `laneMask` y `roiImage` se crean con el tamaño del primer frame. En el código original se inicializaban con `Mat::zeros(imagenOriginal.size(), …)` antes de capturar, cuando `imagenOriginal` estaba vacía: la máscara seguía vacía y `copyTo` copiaba el fotograma entero, sin aplicar la ROI.
