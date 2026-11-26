@@ -1,305 +1,106 @@
-# Tutorial para instalación y uso de OpenCV en C++ para Raspberry
-![OpenCV Logo](https://opencv.org/wp-content/uploads/2022/05/logo.png)
+# Ejemplos de OpenCV en C++ para Raspberry Pi
 
-El siguiente documento describe el proceso para la desacarga y compilación de OpenCV tanto para *Raspberry Pi 5* cómo para *Raspberry Zero 2W*
+![License](https://img.shields.io/badge/License-MIT-green.svg)
+![Platform](https://img.shields.io/badge/Platform-Raspberry%20Pi-C51A4A.svg)
+![OpenCV](https://img.shields.io/badge/OpenCV-4.x-5C3EE8.svg)
+![Language](https://img.shields.io/badge/C%2B%2B-11-00599C.svg)
 
-- [Tutorial para instalación y uso de OpenCV en C++ para Raspberry](#tutorial-para-instalación-y-uso-de-opencv-en-c-para-raspberry)
-- [Instalación de OpenCV 4.9.0 en Raspberry Pi 5 (C++)](#instalación-de-opencv-490-en-raspberry-pi-5-c)
-  - [Requisitos Previos](#requisitos-previos)
-  - [1. Actualizar el Sistema y Dependencias](#1-actualizar-el-sistema-y-dependencias)
-  - [2. Descargar OpenCV y OpenCV Contrib](#2-descargar-opencv-y-opencv-contrib)
-  - [3. Preparar el Entorno de Compilación](#3-preparar-el-entorno-de-compilación)
-  - [4. Configurar CMake](#4-configurar-cmake)
-  - [5. Compilar e Instalar](#5-compilar-e-instalar)
-  - [Prueba de Verificación en C++](#prueba-de-verificación-en-c)
-  - [Crear Archivo CMakeLists.txtCMakeLists.txt](#crear-archivo-cmakeliststxtcmakeliststxt)
-  - [Compilar y Ejecutar](#compilar-y-ejecutar)
-- [Instalación de OpenCV 4.7.0 en Raspberry Zero 2W (C++)](#instalación-de-opencv-470-en-raspberry-zero-2w-c)
-  - [Requisitos Previos](#requisitos-previos-1)
-  - [1. Actualizar el Sistema y Dependencias](#1-actualizar-el-sistema-y-dependencias-1)
-  - [2. Descargar OpenCV y OpenCV Contrib](#2-descargar-opencv-y-opencv-contrib-1)
-  - [3. Preparar el Entorno de Compilación](#3-preparar-el-entorno-de-compilación-1)
-  - [4. Configurar CMake](#4-configurar-cmake-1)
-  - [5. Compilar e Instalar](#5-compilar-e-instalar-1)
-  - [Prueba de Verificación en C++](#prueba-de-verificación-en-c-1)
-  - [Crear Archivo CMakeLists.txt](#crear-archivo-cmakeliststxt)
-  - [Crear Archivo build.sh](#crear-archivo-buildsh)
-  - [Compilar y Ejecutar](#compilar-y-ejecutar-1)
+Colección de ejemplos de procesamiento de imágenes y visión por computadora con OpenCV en C++, pensados para la Raspberry Pi 5 y la Raspberry Pi Zero 2W. Cada carpeta es un programa independiente que se compila con CMake.
 
-# Instalación de OpenCV 4.9.0 en Raspberry Pi 5 (C++)
-Este tutorial describe paso a paso cómo instalar y compilar OpenCV 4.9.0 en una Raspberry Pi 5, así como ejecutar una prueba en C++ para verificar su correcta instalación.
+## Tabla de Contenidos
 
-## Requisitos Previos
-- Raspberry Pi 5 con Raspberry Pi OS actualizado.
+- [Ejemplos de OpenCV en C++ para Raspberry Pi](#ejemplos-de-opencv-en-c-para-raspberry-pi)
+  - [Tabla de Contenidos](#tabla-de-contenidos)
+  - [Ejemplos](#ejemplos)
+  - [Estructura](#estructura)
+  - [Requisitos](#requisitos)
+  - [Cómo empezar](#cómo-empezar)
+  - [Licencia](#licencia)
 
-- Conexión a Internet.
+## Ejemplos
 
-- Acceso como superusuario (sudo).
+En orden de aprendizaje: cada ejemplo usa conceptos de los anteriores.
 
-## 1. Actualizar el Sistema y Dependencias
-Ejecute los siguientes comandos para actualizar el sistema e instalar las dependencias necesarias para compilar OpenCV:
-``` bash
-sudo apt update && sudo apt upgrade -y 
+| # | Ejemplo | Qué enseña | Entrada |
+|---|---|---|---|
+| 1 | [HelloWorld](HelloWorld/) | Comprobar que OpenCV está instalado: imprime su versión | — |
+| 2 | [LoadImage](LoadImage/) | Cargar una imagen con `imread` y mostrarla con `imshow` | Imagen |
+| 3 | [RGBFilter](RGBFilter/) | Recorrer los píxeles y separar los canales de color | Imagen |
+| 4 | [HSVFilter](HSVFilter/) | Pasar a HSV y segmentar por color con `inRange` y máscaras | Imagen |
+| 5 | [HistogramBrightnessContrast](HistogramBrightnessContrast/) | Ajustar brillo y contraste con *trackbars* y ver el histograma | Imagen |
+| 6 | [GaussianFilter](GaussianFilter/) | Suavizar la imagen con un filtro Gaussiano | Imagen |
+| 7 | [LaplacianFilter](LaplacianFilter/) | Detectar bordes con la segunda derivada (Laplaciano) | Imagen |
+| 8 | [CannyFilter](CannyFilter/) | Detectar bordes con Canny y ajustar sus umbrales en vivo | Imagen |
+| 9 | [RegionOfInterest](RegionOfInterest/) | Seleccionar y recortar regiones de interés (ROI) | Imagen |
+| 10 | [FaceDetect](FaceDetect/) | Detectar rostros con un clasificador Haar en cascada | Cámara |
+| 11 | [RoadDetect](RoadDetect/) | Detectar las líneas del carril con Canny y Hough | Cámara |
 
-sudo apt install -y build-essential cmake git pkg-config libgtk-3-dev libavcodec-dev libavformat-dev libswscale-dev libv4l-dev libxvidcore-dev libx264-dev libjpeg-dev libpng-dev libtiff-dev gfortran openexr libatlas-base-dev python3-dev python3-numpy libtbb-dev libdc1394-dev libopenblas-dev libeigen3-dev 
+Los ejemplos con imagen usan [assets/avatares.png](assets/avatares.png), que CMake copia a la carpeta `build/` de cada ejemplo. En [assets/](assets/) también están los tres fotogramas de carretera de `RoadDetect` (`carretera2_1.jpg`, `carretera3_1.jpg` y `carretera4_1.jpg`): CMake los copia a su `build/` y el programa los usa si no hay cámara.
+
+## Estructura
+
+Cada ejemplo sigue la regla **carpeta = `.cpp` = target de CMake = ejecutable**:
+
 ```
- 
-
-## 2. Descargar OpenCV y OpenCV Contrib
-Nos moveremos al directorio /home y descargaremos OpenCV versión 4.9.0 junto con los módulos extra (contrib):
-```bash
-cd /home/
-
-sudo wget -O opencv.zip https://github.com/opencv/opencv/archive/4.9.0.zip
-sudo wget -O opencv_contrib.zip https://github.com/opencv/opencv_contrib/archive/4.9.0.zip
-
-sudo unzip opencv.zip
-sudo unzip opencv_contrib.zip
-``` 
-
-## 3. Preparar el Entorno de Compilación
-```bash
-cd /home/opencv-4.9.0/ 
-
-sudo mkdir build 
-
-cd build 
-```
- 
-
-## 4. Configurar CMake
-Ejecute el siguiente comando para configurar la compilación con CMake. Asegúrese de ajustar rutas si modificó el directorio de descarga:
-```bash
-sudo  cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D OPENCV_EXTRA_MODULES_PATH=/home/opencv_contrib-4.9.0/modules -D ENABLE_NEON=ON -D ENABLE_VFPV3=OFF -D CPU_BASELINE=NEON -D BUILD_TESTS=OFF -D OPENCV_ENABLE_NONFREE=ON -D BUILD_opencv_python3=ON -D PYTHON3_EXECUTABLE=/usr/bin/python3 -D BUILD_EXAMPLES=OFF -D WITH_OPENMP=ON -D WITH_OPENGL=ON .. 
-```
-Si todo está correcto, el sistema mostrará un mensaje como:
-```bash
--- Configuring done -- Generating done -- Build files have been written to: /home/opencv-4.9.0/build 
+OpenCV/
+├── README.md                  # Este índice
+├── INSTALACION.md             # Tutorial de instalación de OpenCV
+├── assets/
+│   ├── avatares.png           # Imagen compartida por los ejemplos
+│   └── carretera*.jpg         # Fotogramas de carretera de referencia (RoadDetect)
+├── _PLANTILLA/                # Molde para crear un ejemplo nuevo
+├── HelloWorld/
+│   ├── README.md              # Compilación, prueba y explicación del ejemplo
+│   ├── HelloWorld.cpp
+│   ├── CMakeLists.txt
+│   └── build.sh               # Compila en build/ y ejecuta
+├── LoadImage/
+├── RGBFilter/
+├── HSVFilter/
+├── HistogramBrightnessContrast/
+├── GaussianFilter/
+├── LaplacianFilter/
+├── CannyFilter/
+├── RegionOfInterest/
+├── FaceDetect/
+│   ├── README.md
+│   ├── FaceDetect.cpp
+│   ├── CMakeLists.txt
+│   ├── build.sh
+│   └── haarcascade_frontalface_alt.xml
+└── RoadDetect/
+    ├── README.md
+    ├── RoadDetect.cpp
+    ├── CMakeLists.txt
+    └── build.sh
 ```
 
-## 5. Compilar e Instalar
-Compilar utilizando todos los núcleos disponibles:
+Todos los READMEs de los ejemplos tienen las mismas secciones, en el mismo orden que [`_PLANTILLA/README.md`](_PLANTILLA/README.md). Para crear un ejemplo nuevo, copie [`_PLANTILLA/`](_PLANTILLA/) y renombre la carpeta, el `.cpp` y el `project()` del `CMakeLists.txt` con el mismo nombre. El código de todos los ejemplos sigue las convenciones que lista la cabecera de [`_PLANTILLA.cpp`](_PLANTILLA/_PLANTILLA.cpp) y se compila con `-Wall -Wextra`.
 
-``` bash
-sudo make –j$(nproc) 
-```
-Instalar OpenCV:
+[`scripts/opencv-build-all.sh`](../scripts/opencv-build-all.sh) compila todos los ejemplos (y la plantilla) y comprueba la regla de nombres, los encabezados de los READMEs y los enlaces relativos; sale con 1 si algo falla.
 
-```bash
-sudo make install 
-```
- 
-## Prueba de Verificación en C++
-Cree un archivo de prueba llamado Prueba.cpp en un directorio diferente:
-```bash
-nano Prueba.cpp 
-```
-Agregue el siguiente código:
+## Requisitos
 
-```c++
-#include <opencv2/core.hpp> 
-#include <iostream> 
+- **Hardware:** Raspberry Pi 5 o Raspberry Pi Zero 2W (o cualquier equipo Linux), con pantalla o sesión gráfica para las ventanas de `imshow`. `FaceDetect` y `RoadDetect` necesitan además una cámara.
+- **Software:** OpenCV 4.x (vale el `libopencv-dev` 4.6 de apt), CMake 3.12 o superior y un compilador de C++11. Ver [INSTALACION.md](INSTALACION.md).
 
-using namespace std; 
-using namespace cv; 
+## Cómo empezar
 
-int main() 
-{ 
-    cout << "OpenCV version: " << CV_VERSION << endl;
-    return 0; 
-} 
-```
-
-## Crear Archivo CMakeLists.txtCMakeLists.txt 
-En el mismo directorio, cree el archivo CMakeLists.txt:
-```bash
-nano CMakeLists.txt 
-```
-Agregue lo siguiente:
-``` txt
-cmake_minimum_required(VERSION 3.12) project(Prueba LANGUAGES CXX) 
-
---- Configuración para OpenCV --- 
-
-find_package(OpenCV 4.9.0 REQUIRED COMPONENTS core highgui imgproc) message(STATUS "OpenCV version: ${OpenCV_VERSION}") 
-
---- Configuración para WiringPi --- 
-
-find_library(WIRINGPI_LIB wiringPi) # Busca la librería WiringPi if(NOT WIRINGPI_LIB) message(FATAL_ERROR "WiringPi not found! Install with: sudo apt install wiringpi") else() message(STATUS "WiringPi library found: ${WIRINGPI_LIB}") endif() 
-
---- Configura el ejecutable --- 
-
-add_executable(Prueba Prueba.cpp) 
-
---- Incluye directorios y enlaza librerías --- 
-
-target_include_directories(Prueba PRIVATE ${OpenCV_INCLUDE_DIRS}) target_link_libraries(Prueba PRIVATE ${OpenCV_LIBS} ${WIRINGPI_LIB}) 
-
---- Habilita C++11 --- 
-
-target_compile_features(Prueba PRIVATE cxx_std_11) 
-```
-
-## Compilar y Ejecutar
-Compile y ejecute la prueba:
-``` bash
-cmake . 
-make 
-./Prueba 
-```
-Si la instalación fue exitosa, verá en consola algo como:
-``` yaml
-OpenCV version: 4.9.0
-```
-
-# Instalación de OpenCV 4.7.0 en Raspberry Zero 2W (C++)
-Este tutorial describe paso a paso cómo instalar y compilar OpenCV 4.7.0 en una Raspberry Zero 2W, así como ejecutar una prueba en C++ para verificar su correcta instalación.
-
-## Requisitos Previos
-- Raspberry Pi con Raspberry Pi OS actualizado.
-
-- Conexión a Internet.
-
-- Acceso como superusuario (sudo).
-
-## 1. Actualizar el Sistema y Dependencias
-Ejecute los siguientes comandos para actualizar el sistema e instalar las dependencias necesarias para compilar OpenCV:
-``` bash
-sudo apt update && sudo apt upgrade -y 
-
-sudo apt install -y build-essential cmake git pkg-config libgtk-3-dev \ libavcodec-dev libavformat-dev libswscale-dev libv4l-dev \ libxvidcore-dev libx264-dev libjpeg-dev libpng-dev libtiff-dev \ gfortran openexr libatlas-base-dev python3-dev python3-numpy \ libtbb-dev libdc1394-dev libopenblas-dev libeigen3-dev –y 
-```
-## 2. Descargar OpenCV y OpenCV Contrib
-Nos moveremos al directorio /home y descargaremos OpenCV versión 4.7.0 junto con los módulos extra (contrib):
-```bash
-cd /home/
-
-sudo wget -O opencv.zip https://github.com/opencv/opencv/archive/4.7.0.zip
-sudo wget -O opencv_contrib.zip https://github.com/opencv/opencv_contrib/archive/4.7.0.zip
-
-sudo unzip opencv.zip
-sudo unzip opencv_contrib.zip
-``` 
-
-## 3. Preparar el Entorno de Compilación
-```bash
-cd /home/opencv-4.7.0/ 
-
-sudo mkdir build 
-
-cd build 
-```
-
-## 4. Configurar CMake
-Ejecute el siguiente comando para configurar la compilación con CMake. Asegúrese de ajustar rutas si modificó el directorio de descarga:
-
-```bash
-sudo  cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D OPENCV_EXTRA_MODULES_PATH=/home/opencv_contrib-4.9.0/modules -D ENABLE_NEON=ON -D ENABLE_VFPV3=OFF -D CPU_BASELINE=NEON -D BUILD_TESTS=OFF -D OPENCV_ENABLE_NONFREE=ON -D BUILD_opencv_python3=ON -D PYTHON3_EXECUTABLE=/usr/bin/python3 -D BUILD_EXAMPLES=OFF -D WITH_OPENMP=ON -D WITH_OPENGL=ON .. 
-```
-Si todo está correcto, el sistema mostrará un mensaje como:
-```bash
--- Configuring done -- Generating done -- Build files have been written to: /home/opencv-4.7.0/build 
-```
-
-## 5. Compilar e Instalar
-Compilar utilizando todos los núcleos disponibles:
-
-``` bash
-sudo make –j1
-```
+1. Instale OpenCV siguiendo [INSTALACION.md](INSTALACION.md).
+2. Clone el repositorio y entre en un ejemplo:
+   ```bash
+   git clone https://github.com/Darcko123/Raspberry.git
+   cd Raspberry/OpenCV/HelloWorld
+   ```
+3. Compile y ejecute:
+   ```bash
+   ./build.sh
+   ```
+   El ejecutable queda en `build/` y se puede volver a lanzar con `cd build && ./HelloWorld`.
 
 > [!NOTE]
-> NOTA: La conexión ssh se puede cerrar múltiples veces, solo hay que desconectar el dispositivos, volver a conectar, reanudar la conexión, regresar al directorio "/home/OpenCV-4.5.0/build" y volver a ejecutar el comando anterior.
+> Por SSH, las ventanas de OpenCV necesitan un display: conéctese con `ssh -X` o, si hay una sesión gráfica abierta en la Pi, ejecute con `DISPLAY=:0 ./build.sh`.
 
-Instalar OpenCV:
+## Licencia
 
-```bash
-sudo make install 
-```
- 
-## Prueba de Verificación en C++
-Cree un archivo de prueba llamado Prueba.cpp en un directorio diferente:
-```bash
-nano Prueba.cpp 
-```
-Agregue el siguiente código:
-
-```c++
-#include <opencv2/core.hpp> 
-#include <iostream> 
-
-using namespace std; 
-using namespace cv; 
-
-int main() 
-{ 
-    cout << "OpenCV version: " << CV_VERSION << endl;
-    return 0; 
-} 
-```
-
-## Crear Archivo CMakeLists.txt
-En el mismo directorio, cree el archivo CMakeLists.txt:
-```bash
-nano CMakeLists.txt 
-```
-Agregue lo siguiente:
-
-```txt
-cmake_minimum_required(VERSION 3.12)
-project(Filtro LANGUAGES CXX)
-
-# Establecer flags del compilador (puede ser útil en la Raspberry Pi Zero 2W)
-set(CMAKE_CXX_FLAGS "" CACHE STRING "Flags for C++ compiler" FORCE)
-
-# Configuración de OpenCV
-find_package(OpenCV 4.7.0 REQUIRED)
-message(STATUS "OpenCV version: ${OpenCV_VERSION}")
-
-# Buscar wiringPi
-find_library(WIRINGPI_LIB wiringPi)
-if(WIRINGPI_LIB)
-    message(STATUS "Found wiringPi library: ${WIRINGPI_LIB}")
-else()
-    message(WARNING "wiringPi library not found. Proceeding without it.")
-endif()
-
-# Crear ejecutable
-add_executable(Filtro Filtro.cpp)
-target_include_directories(Filtro PRIVATE ${OpenCV_INCLUDE_DIRS})
-target_link_libraries(Filtro PRIVATE ${OpenCV_LIBS} ${WIRINGPI_LIB})
-```
-
-## Crear Archivo build.sh
-En el mismo directorio, cree el archivo build.sh:
-```bash
-nano build.sh
-```
-Agregue lo siguiente:
-
-```sh
-#!/bin/bash
-rm -rf CMakeFiles CMakeCache.txt
-cmake -DCMAKE_CXX_FLAGS="" .
-make
-./Prueba
-```
-
-Ejecutar el comando:
-
-```bash
-chmod +x build.sh
-```
-
-## Compilar y Ejecutar
-
-Ejecutar:
-
-```bash
-./build
-```
-
-Si la instalación fue exitosa, verá en consola algo como:
-``` yaml
-OpenCV version: 4.7.0
-```
+Este proyecto está bajo la licencia **MIT**. Consulte el archivo [LICENSE](../LICENSE.md) para más detalles.

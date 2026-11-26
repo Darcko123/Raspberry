@@ -7,7 +7,7 @@ Este repositorio proporciona una colección de recursos, ejemplos y tutoriales p
 Este repositorio está dividido en tres secciones principales:
 
 - **WiringPi/**: Ejemplos de control de GPIOs utilizando la librería WiringPi en lenguaje C.
-- **OpenCV/**: Programas de procesamiento de imágenes y visión por computadora utilizando OpenCV en C++, incluyendo un tutorial detallado para su instalación.
+- **[OpenCV/](OpenCV/README.md)**: Programas de procesamiento de imágenes y visión por computadora utilizando OpenCV en C++, incluyendo un [tutorial detallado para su instalación](OpenCV/INSTALACION.md).
 - **DiseñoWeb/**: Diseños básicos de páginas web listas para ser servidas mediante un servidor Apache.
 
 ---
@@ -39,15 +39,24 @@ Raspberry/
 │   ├── 2.Entradas/
 │
 ├── OpenCV/        # Programas de procesamiento de imágenes y visión por computadora
-│   ├── OpenCVDownloadTutorial.md
-│   ├── Prueba/
-│   ├── CargaDeImagen/
-│   ├── FiltroRGB/
-│   ├── FiltroHSV/
-│   ├── FiltroLaplaciano/
-│   ├── FiltroGaussiano/
-│   ├── CMakeLists.txt
-│   ├── build.sh
+│   ├── README.md                    # Índice de ejemplos
+│   ├── INSTALACION.md               # Tutorial de instalación de OpenCV
+│   ├── assets/                      # Imágenes compartidas por los ejemplos (avatares.png, carretera*.jpg)
+│   ├── _PLANTILLA/                  # Molde para crear un ejemplo nuevo
+│   ├── HelloWorld/
+│   ├── LoadImage/
+│   ├── RGBFilter/
+│   ├── HSVFilter/
+│   ├── HistogramBrightnessContrast/
+│   ├── GaussianFilter/
+│   ├── LaplacianFilter/
+│   ├── CannyFilter/
+│   ├── RegionOfInterest/
+│   ├── FaceDetect/
+│   └── RoadDetect/
+│
+├── scripts/
+│   ├── opencv-build-all.sh          # Compila y verifica los ejemplos de OpenCV
 │
 ├── DiseñoWeb
 │   ├── README.md
