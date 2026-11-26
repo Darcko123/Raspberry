@@ -45,6 +45,7 @@ Es el ejemplo más cercano a un sistema de asistencia a la conducción: reúne p
 ## Características
 
 - Captura de vídeo con `VideoCapture` a 640×480 y 60 FPS solicitados, con brillo y contraste fijados en 128.
+- Si la cámara no abre o no entrega fotogramas, avisa y procesa una foto de [assets/](../assets/): funciona también sin cámara.
 - ROI trapezoidal que cubre el 22 % del fotograma (de la fila 60 % a la última).
 - Bordes con Canny (umbrales 50 y 150) y detección de segmentos con `HoughLinesP`.
 - Filtro de ángulo (20°–70°), clasificación por pendiente y promedio de las líneas izquierda y derecha.
@@ -60,7 +61,7 @@ Es el ejemplo más cercano a un sistema de asistencia a la conducción: reúne p
 
 ### Software
 
-- OpenCV 4.x con los módulos `core`, `imgproc`, `highgui` y `videoio` (vale el `libopencv-dev` 4.6 de apt; ver [INSTALACION.md](../INSTALACION.md)).
+- OpenCV 4.x con los módulos `core`, `imgproc`, `imgcodecs`, `highgui` y `videoio` (vale el `libopencv-dev` 4.6 de apt; ver [INSTALACION.md](../INSTALACION.md)).
 - CMake 3.12 o superior y un compilador de C++11.
 - Con cámara CSI en Raspberry Pi OS Bookworm: `libcamerify`, del paquete `libcamera-tools`.
 
@@ -107,7 +108,7 @@ libcamerify ./RoadDetect
 
 En Bookworm, la cámara CSI se gestiona con libcamera y no aparece como un dispositivo V4L2 normal, así que `VideoCapture(0)` no la puede abrir directamente. `libcamerify` traduce las llamadas V4L2 a libcamera sin cambiar el código, igual que en [FaceDetect](../FaceDetect/).
 
-El programa lee siempre la cámara: no acepta una imagen como argumento. En [assets/](../assets/) se conservan tres fotogramas de carretera como referencia visual ([carretera2_1.jpg](../assets/carretera2_1.jpg), [carretera3_1.jpg](../assets/carretera3_1.jpg) y [carretera4_1.jpg](../assets/carretera4_1.jpg)), pero el ejecutable no los carga. Por SSH, conéctese con `ssh -X` o, si hay una sesión gráfica abierta en la Pi, use `DISPLAY=:0 ./RoadDetect`.
+El programa intenta abrir la cámara; si no lo consigue o no entrega ningún fotograma, avisa y carga la primera foto que encuentra en [assets/](../assets/): [carretera2_1.jpg](../assets/carretera2_1.jpg), [carretera3_1.jpg](../assets/carretera3_1.jpg) o [carretera4_1.jpg](../assets/carretera4_1.jpg). CMake copia las tres a `build/`, que es donde las busca. En modo imagen se procesa un único fotograma y se termina al pulsar cualquier tecla. Por SSH, conéctese con `ssh -X` o, si hay una sesión gráfica abierta en la Pi, use `DISPLAY=:0 ./RoadDetect`.
 
 ### Resultado esperado
 
@@ -117,7 +118,7 @@ Se abren tres ventanas:
 2. **región de interés (ROI)**: bordes de Canny dentro del trapecio, en blanco sobre fondo negro; fuera de la ROI todo queda a cero.
 3. **líneas detectadas**: copia del fotograma con el trapecio en magenta, la línea izquierda en azul y la derecha en rojo. Si no hay segmentos, aparece `No se detectaron lineas`; si falta un lado, aparece `No hay linea izquierda` o `No hay linea derecha`.
 
-Al pulsar **q** o **ESC** con alguna ventana seleccionada, imprime `Saliendo del programa...` y termina un segundo después. Sin cámara, sale con código 1: imprime `Error: No se pudo abrir la cámara.` si no puede abrir el dispositivo, o `Error: No se pudo capturar la imagen de la cámara.` si lo abre pero no entrega fotogramas.
+Con cámara, al pulsar **q** o **ESC** con alguna ventana seleccionada imprime `Saliendo del programa...` y termina un segundo después. Sin cámara, imprime `Aviso: No se pudo abrir la cámara; se prueba con una imagen de assets/` o `Aviso: Usando 'carretera2_1.jpg' en lugar de la cámara.`, muestra las mismas tres ventanas con la foto y termina al pulsar cualquier tecla.
 
 ### Verificación
 
@@ -127,9 +128,10 @@ Desde `build/`:
 /usr/bin/time -f 'RSS máx: %M kB | tiempo: %e s | salida: %x' ./RoadDetect
 ```
 
-- Tras salir con `q` o ESC debe mostrar `salida: 0`.
-- Si se lanza sin cámara (o sin `libcamerify` con una CSI), debe imprimir `Error: No se pudo abrir la cámara.` y salir con `1`.
-- Si la cámara deja de entregar fotogramas, imprime `Error: No se pudo capturar la imagen de la cámara.` y sale con `1`. En el equipo de desarrollo, sin cámara física, OpenCV abre un dispositivo por GStreamer y se da este segundo caso, con avisos `GStreamer warning` que no vienen del código.
+- Con cámara, tras salir con `q` o ESC debe mostrar `salida: 0`.
+- Sin cámara, debe imprimir los avisos de la cámara y de la imagen elegida, abrir las ventanas con la foto y mostrar `salida: 0` tras pulsar una tecla. En el equipo de desarrollo, sin cámara física, OpenCV abre un dispositivo por GStreamer, no entrega frames y se activa el fallback; los avisos `GStreamer warning` no vienen del código.
+- Si se lanza desde fuera de `build/`, no encuentra las fotos y debe imprimir `Error: No se pudo abrir la cámara ni cargar una imagen de assets.` con `salida: 1`.
+- Sin pantalla, se puede comprobar el procesamiento con `timeout 5 env QT_QPA_PLATFORM=offscreen ./RoadDetect`: debe llegar al aviso de la imagen y quedarse esperando (salida `124` del `timeout`).
 
 `RSS máx` incluye el búfer de la cámara y las ventanas. `tiempo` es la duración de la sesión, no el tiempo por fotograma.
 
@@ -207,7 +209,7 @@ Las cifras son tamaños **calculados** para el fotograma solicitado de 640×480,
 | `roiImage` (BGR) | 921.600 B (900 KiB) |
 | `houghResult` (clon de `frame`) | 921.600 B (900 KiB) |
 
-En total, unas 3,8 MiB de matrices por fotograma, más los búferes internos de `VideoCapture`, `Canny` y las tres ventanas. Los búferes de la GUI pesan más que las imágenes, como se comprobó en los ejemplos con `imshow`.
+En total, unas 3,8 MiB de matrices por fotograma, más los búferes internos de `VideoCapture`, `Canny` y las tres ventanas. Los búferes de la GUI pesan más que las imágenes, como se comprobó en los ejemplos con `imshow`. En modo imagen, `carretera2_1.jpg` es de 1000×533 y las matrices suman unas 6,6 MiB.
 
 - **Cómputo:** el Gaussiano 3×3 y Canny recorren los 307.200 píxeles del fotograma en gris; Hough solo los de la ROI (22 %). El filtrado y el promedio trabajan sobre decenas de segmentos, así que su coste es insignificante al lado de Canny y Hough. Reducir la resolución de captura es la palanca más eficaz: el trabajo crece con el número de píxeles.
 - **Energía:** `waitKey(1)` apenas espera, así que el bucle procesa fotogramas tan rápido como llegan y la CPU no descansa mientras el programa está abierto. No se mide ningún FPS.
@@ -216,14 +218,14 @@ En total, unas 3,8 MiB de matrices por fotograma, más los búferes internos de 
 
 ## Descripción del Código
 
-El programa ([`RoadDetect.cpp`](RoadDetect.cpp)) tiene cinco funciones auxiliares `static`, definidas antes de `main`, y un bucle de captura:
+El programa ([`RoadDetect.cpp`](RoadDetect.cpp)) tiene seis funciones auxiliares `static`, definidas antes de `main`, y un bucle de captura:
 
-1. **Cámara:** `VideoCapture capture(0)` y comprobación con `isOpened()`; se piden 640×480, 60 FPS, brillo 128 y contraste 128. La cámara puede ignorar cualquiera de esas peticiones.
+1. **Entrada:** `VideoCapture capture(0)` y comprobación con `isOpened()`; se piden 640×480, 60 FPS, brillo 128 y contraste 128. Se lee un primer frame porque algunas cámaras abren pero no entregan imagen. Si no hay cámara o el frame está vacío, `loadFallbackImage` prueba las tres fotos de `build/` con `imread` y avisa de cuál usa; si no hay ninguna, termina con `EXIT_FAILURE`.
 2. **Máscaras:** `laneMask` y `roiImage` se crean con el tamaño del primer frame. En el código original se inicializaban con `Mat::zeros(imagenOriginal.size(), …)` antes de capturar, cuando `imagenOriginal` estaba vacía: la máscara seguía vacía y `copyTo` copiaba el fotograma entero, sin aplicar la ROI.
 3. **Preprocesamiento:** `cvtColor(frame, gray, COLOR_BGR2GRAY)`, `GaussianBlur` de 3×3 y `Canny` con umbrales 50 y 150.
 4. **ROI:** los cuatro vértices del trapecio se calculan a partir de `frame.cols` y `frame.rows`; `fillConvexPoly` rellena `laneMask` y `edges.copyTo(roiImage, laneMask)` deja a cero el exterior.
 5. **`processLines`:** llama a `HoughLinesP`, clona el fotograma en `houghResult`, dibuja el trapecio y las líneas. Si no hay segmentos, escribe el aviso y sale; si falta la izquierda o la derecha, escribe el aviso correspondiente en esa posición.
-6. **Interfaz:** se muestran las tres ventanas y `waitKey(1)` comprueba si se pulsó `q` o ESC; en ese caso imprime el mensaje de salida, espera un segundo y termina con `EXIT_SUCCESS`.
+6. **Interfaz:** se muestran las tres ventanas. Con cámara, `waitKey(1)` comprueba `q` o ESC y vuelve a capturar; sin cámara (`useImage`), `waitKey(0)` espera una tecla y termina después de esa única vuelta. En ambos casos imprime `Saliendo del programa...`, espera un segundo y devuelve `EXIT_SUCCESS`.
 
 ```cpp
 HoughLinesP(roiImage, lines, 1, CV_PI / 180, 50, 50, 10);
@@ -237,6 +239,7 @@ Los dos últimos valores son la longitud mínima del segmento (50 px) y el hueco
 |---|---|---|
 | `VideoCapture` | videoio | Abre la cámara y lee fotogramas |
 | `VideoCapture::set` | videoio | Pide resolución, FPS, brillo y contraste |
+| `imread` | imgcodecs | Carga una foto de `assets/` si no hay cámara |
 | `cvtColor` | imgproc | Convierte el fotograma a escala de grises |
 | `GaussianBlur` | imgproc | Suaviza antes de Canny |
 | `Canny` | imgproc | Extrae bordes con histéresis |
@@ -249,8 +252,9 @@ Los dos últimos valores son la longitud mínima del segmento (50 px) y el hueco
 
 ## Limitaciones conocidas
 
-- Necesita una cámara: no hay modo de leer un archivo de imagen, aunque haya fotogramas de ejemplo en [assets/](../assets/).
-- La cámara CSI en Bookworm necesita `libcamerify`, aún no probado con este ejemplo en la Pi.
+- Sin cámara solo procesa una foto fija de [assets/](../assets/) (la primera que cargue); no hay argumentos para elegir otra ni para leer vídeo desde archivo.
+- La cámara CSI en Bookworm necesita `libcamerify`; si no está, el programa cae al modo imagen en lugar de usar la cámara.
+- El modo imagen necesita una sesión gráfica para `imshow`: por SSH hay que usar `ssh -X` o `DISPLAY=:0`.
 - Los parámetros de Canny y Hough están fijos: con mucha luz, sombras o marcas desgastadas la detección se degrada y no hay ajuste en tiempo real.
 - Solo promedia un segmento por lado: en una autopista con varios carriles puede elegir una marca equivocada y no hay seguimiento entre fotogramas.
 - Cada fotograma clona la imagen para dibujar el resultado, una copia completa de 900 KiB.
