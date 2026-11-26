@@ -19,28 +19,14 @@ using namespace std;
 using namespace cv;
 
 // =============================================
-// Detección y dibujo de rostros
+//  PROTOTIPOS DE FUNCIONES PRIVADAS
 // =============================================
-static void detectAndDraw(Mat& image, CascadeClassifier& classifier)
-{
-    vector<Rect> faces;
-    Mat gray;
 
-    // Convertir a escala de grises y mejorar contraste
-    cvtColor(image, gray, COLOR_BGR2GRAY);
-    equalizeHist(gray, gray);
+static void detectAndDraw(Mat& image, CascadeClassifier& classifier);
 
-    // Detección de rostros
-    classifier.detectMultiScale(gray, faces, 1.1, 4, 0 | CASCADE_SCALE_IMAGE, Size(30, 30));
-
-    // Dibujar los rostros detectados
-    for (const Rect& face : faces) {
-        rectangle(image, face, Scalar(255, 0, 0), 2);
-    }
-
-    // Mostrar la imagen con los rostros
-    imshow("Rostros detectados", image);
-}
+// =============================================
+//  main()
+// =============================================
 
 int main()
 {
@@ -94,4 +80,32 @@ int main()
     }
 
     return EXIT_SUCCESS;
+}
+
+// =============================================
+//  FUNCIONES PRIVADAS
+// =============================================
+
+// =============================================
+// Detección y dibujo de rostros
+// =============================================
+static void detectAndDraw(Mat& image, CascadeClassifier& classifier)
+{
+    vector<Rect> faces;
+    Mat gray;
+
+    // Convertir a escala de grises y mejorar contraste
+    cvtColor(image, gray, COLOR_BGR2GRAY);
+    equalizeHist(gray, gray);
+
+    // Detección de rostros
+    classifier.detectMultiScale(gray, faces, 1.1, 4, 0 | CASCADE_SCALE_IMAGE, Size(30, 30));
+
+    // Dibujar los rostros detectados
+    for (const Rect& face : faces) {
+        rectangle(image, face, Scalar(255, 0, 0), 2);
+    }
+
+    // Mostrar la imagen con los rostros
+    imshow("Rostros detectados", image);
 }

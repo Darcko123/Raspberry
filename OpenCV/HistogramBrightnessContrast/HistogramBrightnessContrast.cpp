@@ -25,6 +25,52 @@ Mat image;  // Imagen original en escala de grises
 Mat hist;   // Matriz para almacenar el histograma
 
 // =============================================
+//  PROTOTIPOS DE FUNCIONES PRIVADAS
+// =============================================
+
+static void updateBrightnessContrast(int, void*);
+
+// =============================================
+//  main()
+// =============================================
+
+int main()
+{
+    // =============================================
+    // Carga y verificación de la imagen
+    // =============================================
+    image = imread("avatares.png", IMREAD_GRAYSCALE);
+    if (image.empty()) {
+        cerr << "Error: No se pudo cargar la imagen 'avatares.png'" << endl;
+        return EXIT_FAILURE;
+    }
+
+    // =============================================
+    // Configuración de la interfaz
+    // =============================================
+    namedWindow("Imagen original", WINDOW_AUTOSIZE);
+    namedWindow("Histograma", WINDOW_AUTOSIZE);
+
+    // Sin puntero de valor (obsoleto): la posición inicial se fija con setTrackbarPos
+    createTrackbar("Brillo", "Imagen original", nullptr, 200, updateBrightnessContrast);
+    createTrackbar("Contraste", "Imagen original", nullptr, 200, updateBrightnessContrast);
+    setTrackbarPos("Brillo", "Imagen original", 100);
+    setTrackbarPos("Contraste", "Imagen original", 100);
+
+    // =============================================
+    // Visualización
+    // =============================================
+    updateBrightnessContrast(0, nullptr);  // Primer dibujo, antes de mover los trackbars
+    waitKey(0);  // Cualquier tecla cierra el programa
+
+    return EXIT_SUCCESS;
+}
+
+// =============================================
+//  FUNCIONES PRIVADAS
+// =============================================
+
+// =============================================
 // Callback de los trackbars
 // =============================================
 /*
@@ -104,36 +150,4 @@ static void updateBrightnessContrast(int, void*)
     }
 
     imshow("Histograma", histImage);
-}
-
-int main()
-{
-    // =============================================
-    // Carga y verificación de la imagen
-    // =============================================
-    image = imread("avatares.png", IMREAD_GRAYSCALE);
-    if (image.empty()) {
-        cerr << "Error: No se pudo cargar la imagen 'avatares.png'" << endl;
-        return EXIT_FAILURE;
-    }
-
-    // =============================================
-    // Configuración de la interfaz
-    // =============================================
-    namedWindow("Imagen original", WINDOW_AUTOSIZE);
-    namedWindow("Histograma", WINDOW_AUTOSIZE);
-
-    // Sin puntero de valor (obsoleto): la posición inicial se fija con setTrackbarPos
-    createTrackbar("Brillo", "Imagen original", nullptr, 200, updateBrightnessContrast);
-    createTrackbar("Contraste", "Imagen original", nullptr, 200, updateBrightnessContrast);
-    setTrackbarPos("Brillo", "Imagen original", 100);
-    setTrackbarPos("Contraste", "Imagen original", 100);
-
-    // =============================================
-    // Visualización
-    // =============================================
-    updateBrightnessContrast(0, nullptr);  // Primer dibujo, antes de mover los trackbars
-    waitKey(0);  // Cualquier tecla cierra el programa
-
-    return EXIT_SUCCESS;
 }
