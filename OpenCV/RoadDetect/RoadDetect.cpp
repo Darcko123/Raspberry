@@ -20,6 +20,142 @@ using namespace std;
 using namespace cv;
 
 // =============================================
+//  PROTOTIPOS DE FUNCIONES PRIVADAS
+// =============================================
+
+static bool loadFallbackImage(Mat& frame, const char*& imagePath);
+static vector<Vec4i> filterByAngle(const vector<Vec4i>& lines);
+static void classifyLines(const vector<Vec4i>& lines, int cols,
+                          vector<Vec4i>& left, vector<Vec4i>& right);
+static Vec4i averageLines(const vector<Vec4i>& lines);
+static void extendLine(Vec4i& line, int imgRows);
+static void processLines(const Mat& frame, const Mat& roiImage, Mat& houghResult,
+                         const vector<Point>& roiVertices);
+
+// =============================================
+//  main()
+// =============================================
+
+int main()
+{
+    // =============================================
+    // Configuración de la cámara y entrada alternativa
+    // =============================================
+    VideoCapture capture(0);  // Inicializar la cámara (0 = cámara por defecto)
+    Mat frame;
+    const char* imagePath = nullptr;
+    bool useImage = false;
+
+    if (capture.isOpened()) {
+        capture.set(CAP_PROP_FRAME_WIDTH, 640);   // Ancho del frame
+        capture.set(CAP_PROP_FRAME_HEIGHT, 480);  // Alto del frame
+        capture.set(CAP_PROP_FPS, 60);            // Frames por segundo
+        capture.set(CAP_PROP_BRIGHTNESS, 128);    // Brillo (0-255)
+        capture.set(CAP_PROP_CONTRAST, 128);      // Contraste (0-255)
+        capture >> frame;  // Primer frame: algunas cámaras abren pero no entregan imagen
+    } else {
+        cerr << "Aviso: No se pudo abrir la cámara; se prueba con una imagen de assets/." << endl;
+    }
+
+    if (!capture.isOpened() || frame.empty()) {
+        if (!loadFallbackImage(frame, imagePath)) {
+            cerr << "Error: No se pudo abrir la cámara ni cargar una imagen de assets/." << endl;
+            return EXIT_FAILURE;
+        }
+        useImage = true;
+        cerr << "Aviso: Usando '" << imagePath << "' en lugar de la cámara." << endl;
+    }
+
+    // =============================================
+    // Bucle principal
+    // =============================================
+    Mat gray, blurred, edges;
+    Mat laneMask, roiImage, houghResult;
+
+    while (true) {
+        if (!useImage) {
+            capture >> frame;  // Capturar el siguiente frame de la cámara
+            if (frame.empty()) {
+                // La cámara puede dejar de entregar frames en cualquier momento
+                if (!loadFallbackImage(frame, imagePath)) {
+                    cerr << "Error: No se pudo capturar la imagen de la cámara ni cargar una imagen de assets/." << endl;
+                    return EXIT_FAILURE;
+                }
+                useImage = true;
+                cerr << "Aviso: Usando '" << imagePath << "' en lugar de la cámara." << endl;
+            }
+        }
+
+        // Las máscaras se crean con el tamaño del primer frame. Antes se
+        // inicializaban con un Mat vacío y la ROI no se aplicaba.
+        if (laneMask.size() != frame.size()) {
+            laneMask = Mat::zeros(frame.size(), CV_8UC1);
+            roiImage = Mat::zeros(frame.size(), CV_8UC1);
+        }
+
+        // =============================================
+        // Pre-procesamiento: grises y suavizado
+        // =============================================
+        cvtColor(frame, gray, COLOR_BGR2GRAY);
+        GaussianBlur(gray, blurred,
+                     Size(3, 3),       // Tamaño del kernel Gaussiano
+                     3,                // Desviación estándar en X
+                     3,                // Desviación estándar en Y
+                     BORDER_DEFAULT);  // Método de bordes
+
+        // =============================================
+        // Detección de bordes con Canny
+        // =============================================
+        Canny(blurred, edges,
+              50,   // Umbral bajo para la detección de bordes
+              150,  // Umbral alto para la detección de bordes
+              3);   // Apertura del operador de Sobel
+
+        // =============================================
+        // Región de interés (ROI)
+        // =============================================
+        vector<Point> roiVertices = {
+            Point(frame.cols * 0.45, frame.rows * 0.6),  // Superior izquierdo
+            Point(frame.cols * 0.55, frame.rows * 0.6),  // Superior derecho
+            Point(frame.cols,        frame.rows),        // Inferior derecho
+            Point(0,                 frame.rows)         // Inferior izquierdo
+        };
+
+        fillConvexPoly(laneMask, roiVertices.data(),
+                       static_cast<int>(roiVertices.size()), Scalar(255));
+        edges.copyTo(roiImage, laneMask);
+
+        // =============================================
+        // Transformada de Hough y resultado
+        // =============================================
+        processLines(frame, roiImage, houghResult, roiVertices);
+
+        // Títulos sin acentos: con el backend Qt de OpenCV 4.6 una ventana con acentos queda negra
+        // y sin el tamaño de la imagen.
+        imshow("Imagen original", frame);
+        imshow("Region de interes (ROI)", roiImage);
+        imshow("Lineas detectadas", houghResult);
+
+        // =============================================
+        // Salida
+        // =============================================
+        // Con imagen solo se procesa una vez: cualquier tecla cierra el programa.
+        int key = waitKey(useImage ? 0 : 1);
+        if (useImage || key == 27 || key == 'q') {
+            cout << "Saliendo del programa..." << endl;
+            waitKey(1000);  // Espera 1 segundo para que se vea el mensaje
+            break;
+        }
+    }
+
+    return EXIT_SUCCESS;
+}
+
+// =============================================
+//  FUNCIONES PRIVADAS
+// =============================================
+
+// =============================================
 // Entrada alternativa cuando no hay cámara
 // =============================================
 // CMake copia estas imágenes a build/ desde ../assets/. Se prueba en orden y
@@ -171,119 +307,4 @@ static void processLines(const Mat& frame, const Mat& roiImage, Mat& houghResult
         putText(houghResult, "No hay linea derecha", Point(50, 140),
                 FONT_HERSHEY_SIMPLEX, 0.6, Scalar(0, 0, 255), 2);
     }
-}
-
-int main()
-{
-    // =============================================
-    // Configuración de la cámara y entrada alternativa
-    // =============================================
-    VideoCapture capture(0);  // Inicializar la cámara (0 = cámara por defecto)
-    Mat frame;
-    const char* imagePath = nullptr;
-    bool useImage = false;
-
-    if (capture.isOpened()) {
-        capture.set(CAP_PROP_FRAME_WIDTH, 640);   // Ancho del frame
-        capture.set(CAP_PROP_FRAME_HEIGHT, 480);  // Alto del frame
-        capture.set(CAP_PROP_FPS, 60);            // Frames por segundo
-        capture.set(CAP_PROP_BRIGHTNESS, 128);    // Brillo (0-255)
-        capture.set(CAP_PROP_CONTRAST, 128);      // Contraste (0-255)
-        capture >> frame;  // Primer frame: algunas cámaras abren pero no entregan imagen
-    } else {
-        cerr << "Aviso: No se pudo abrir la cámara; se prueba con una imagen de assets/." << endl;
-    }
-
-    if (!capture.isOpened() || frame.empty()) {
-        if (!loadFallbackImage(frame, imagePath)) {
-            cerr << "Error: No se pudo abrir la cámara ni cargar una imagen de assets/." << endl;
-            return EXIT_FAILURE;
-        }
-        useImage = true;
-        cerr << "Aviso: Usando '" << imagePath << "' en lugar de la cámara." << endl;
-    }
-
-    // =============================================
-    // Bucle principal
-    // =============================================
-    Mat gray, blurred, edges;
-    Mat laneMask, roiImage, houghResult;
-
-    while (true) {
-        if (!useImage) {
-            capture >> frame;  // Capturar el siguiente frame de la cámara
-            if (frame.empty()) {
-                // La cámara puede dejar de entregar frames en cualquier momento
-                if (!loadFallbackImage(frame, imagePath)) {
-                    cerr << "Error: No se pudo capturar la imagen de la cámara ni cargar una imagen de assets/." << endl;
-                    return EXIT_FAILURE;
-                }
-                useImage = true;
-                cerr << "Aviso: Usando '" << imagePath << "' en lugar de la cámara." << endl;
-            }
-        }
-
-        // Las máscaras se crean con el tamaño del primer frame. Antes se
-        // inicializaban con un Mat vacío y la ROI no se aplicaba.
-        if (laneMask.size() != frame.size()) {
-            laneMask = Mat::zeros(frame.size(), CV_8UC1);
-            roiImage = Mat::zeros(frame.size(), CV_8UC1);
-        }
-
-        // =============================================
-        // Pre-procesamiento: grises y suavizado
-        // =============================================
-        cvtColor(frame, gray, COLOR_BGR2GRAY);
-        GaussianBlur(gray, blurred,
-                     Size(3, 3),       // Tamaño del kernel Gaussiano
-                     3,                // Desviación estándar en X
-                     3,                // Desviación estándar en Y
-                     BORDER_DEFAULT);  // Método de bordes
-
-        // =============================================
-        // Detección de bordes con Canny
-        // =============================================
-        Canny(blurred, edges,
-              50,   // Umbral bajo para la detección de bordes
-              150,  // Umbral alto para la detección de bordes
-              3);   // Apertura del operador de Sobel
-
-        // =============================================
-        // Región de interés (ROI)
-        // =============================================
-        vector<Point> roiVertices = {
-            Point(frame.cols * 0.45, frame.rows * 0.6),  // Superior izquierdo
-            Point(frame.cols * 0.55, frame.rows * 0.6),  // Superior derecho
-            Point(frame.cols,        frame.rows),        // Inferior derecho
-            Point(0,                 frame.rows)         // Inferior izquierdo
-        };
-
-        fillConvexPoly(laneMask, roiVertices.data(),
-                       static_cast<int>(roiVertices.size()), Scalar(255));
-        edges.copyTo(roiImage, laneMask);
-
-        // =============================================
-        // Transformada de Hough y resultado
-        // =============================================
-        processLines(frame, roiImage, houghResult, roiVertices);
-
-        // Títulos sin acentos: con el backend Qt de OpenCV 4.6 una ventana con acentos queda negra
-        // y sin el tamaño de la imagen.
-        imshow("Imagen original", frame);
-        imshow("Region de interes (ROI)", roiImage);
-        imshow("Lineas detectadas", houghResult);
-
-        // =============================================
-        // Salida
-        // =============================================
-        // Con imagen solo se procesa una vez: cualquier tecla cierra el programa.
-        int key = waitKey(useImage ? 0 : 1);
-        if (useImage || key == 27 || key == 'q') {
-            cout << "Saliendo del programa..." << endl;
-            waitKey(1000);  // Espera 1 segundo para que se vea el mensaje
-            break;
-        }
-    }
-
-    return EXIT_SUCCESS;
 }
