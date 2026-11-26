@@ -10,7 +10,7 @@
  *  - Solo se incluyen los módulos de OpenCV que pide find_package() en el CMakeLists.txt.
  *  - Identificadores en inglés y en camelCase; comentarios y títulos de ventana en español.
  *  - main() sin argumentos, errores por cerr y salida con EXIT_SUCCESS o EXIT_FAILURE.
- *  - Funciones auxiliares static y definidas antes de main().
+ *  - Funciones privadas (static): prototipos antes de main() y definiciones después.
  *  - Cada sección empieza con un bloque de comentarios // ====.
  *
  * @author Daniel Ruiz
