@@ -21,6 +21,15 @@
     - [Resultado esperado](#resultado-esperado)
     - [Verificación](#verificación)
   - [Teoría de Visión Embebida](#teoría-de-visión-embebida)
+    - [Problema que resuelve](#problema-que-resuelve)
+    - [Fundamentos](#fundamentos)
+      - [1. Características de Haar](#1-características-de-haar)
+      - [2. Imagen integral](#2-imagen-integral)
+      - [3. AdaBoost](#3-adaboost)
+      - [4. Cascada atencional](#4-cascada-atencional)
+      - [Búsqueda multiescala: `detectMultiScale`](#búsqueda-multiescala-detectmultiscale)
+      - [Ecualización del histograma](#ecualización-del-histograma)
+    - [Coste en la Raspberry Pi](#coste-en-la-raspberry-pi)
   - [Descripción del Código](#descripción-del-código)
   - [Funciones OpenCV utilizadas](#funciones-opencv-utilizadas)
   - [Limitaciones conocidas](#limitaciones-conocidas)
@@ -117,10 +126,84 @@ Desde `build/`:
 
 ## Teoría de Visión Embebida
 
-<!-- FASE 4: problema que resuelve, fundamentos y restricciones de memoria, cómputo y energía, con cifras medidas en la Raspberry Pi. -->
+### Problema que resuelve
 
-> [!NOTE]
-> Sección en preparación.
+Encontrar los rostros de cada fotograma de la cámara en tiempo real, en una CPU modesta y sin GPU ni redes neuronales. El detector de Viola y Jones (2001), que es el que usa este ejemplo, fue el primero en conseguirlo y sigue siendo útil en hardware limitado.
+
+### Fundamentos
+
+La idea es recorrer la imagen con una ventana, a varias escalas, y decidir en cada posición si contiene un rostro o no. Con cientos de miles de ventanas por fotograma, la decisión tiene que ser casi gratuita para la gran mayoría de ellas. Viola y Jones lo consiguieron combinando cuatro ideas.
+
+#### 1. Características de Haar
+
+En lugar de mirar píxeles sueltos, el detector mide contrastes entre rectángulos adyacentes: la suma de los píxeles de una zona menos la de la zona vecina. Por ejemplo, la franja de los ojos es más oscura que la de las mejillas, y el puente de la nariz más claro que los ojos que tiene a los lados. Cada característica se calcula como:
+
+```math
+h = \sum_i w_i \cdot \operatorname{Suma}(R_i)
+```
+
+con 2, 3 o 4 rectángulos $R_i$ y pesos $w_i$ de signo opuesto. Combinando posiciones, tamaños y tipos, dentro de una ventana pequeña caben decenas de miles de características distintas.
+
+#### 2. Imagen integral
+
+Cada elemento de la **imagen integral** guarda la suma de todos los píxeles que quedan por encima y a la izquierda:
+
+```math
+II(x, y) = \sum_{x' \le x} \ \sum_{y' \le y} f(x', y')
+```
+
+Se calcula en una sola pasada y, a partir de ella, la suma de **cualquier** rectángulo cuesta 4 lecturas, sea cual sea su tamaño. Si $A$, $B$, $C$ y $D$ son sus esquinas superior izquierda, superior derecha, inferior izquierda e inferior derecha:
+
+```math
+\operatorname{Suma}(R) = II(D) - II(B) - II(C) + II(A)
+```
+
+Como los rectángulos de una característica comparten esquinas, una de 2 rectángulos cuesta 6 lecturas y una de 3, 8. Con una segunda imagen integral de $f^2$ se calcula también la varianza de cada ventana, $\sigma^2 = E[f^2] - E[f]^2$, que el detector usa para normalizar su contraste: así la respuesta no depende de la iluminación.
+
+#### 3. AdaBoost
+
+Cada característica, por sí sola, es un clasificador **débil** $h_t(\mathbf{x}) \in \{0, 1\}$: un umbral sobre su valor que acierta poco más que el azar. AdaBoost combina muchos en un clasificador **fuerte** mediante una votación ponderada:
+
+```math
+C(\mathbf{x}) = \begin{cases} 1 & \text{si } \sum_t \alpha_t \, h_t(\mathbf{x}) \ge \Theta \\ 0 & \text{en otro caso} \end{cases}
+```
+
+Durante el entrenamiento, en cada ronda se elige la característica que menos se equivoca, se le da un peso $\alpha_t$ mayor cuanto más acierta y se aumenta el peso de los ejemplos que ha fallado, para que la siguiente ronda se concentre en ellos. De las decenas de miles posibles, el entrenamiento se queda con las que más ayudan: 2135 en este clasificador.
+
+#### 4. Cascada atencional
+
+Los clasificadores fuertes se encadenan en **etapas** de complejidad creciente. Una ventana tiene que superar todas para considerarse un rostro, y en cuanto una etapa la rechaza, se abandona. `haarcascade_frontalface_alt.xml` usa una ventana de 20 × 20 y tiene 22 etapas con 2135 clasificadores débiles en total; la primera etapa usa solo 3 y la segunda, 16.
+
+La inmensa mayoría de las ventanas de una imagen no contiene un rostro y se descarta en las primeras etapas, así que el coste medio por ventana es de unas pocas características, no de miles: en el artículo original, con una cascada de 38 etapas y unas 6000 características, se evaluaban de media unas 10 por ventana.
+
+Cada etapa se entrena para dejar pasar casi todos los rostros aunque acepte muchas ventanas falsas. Con valores ilustrativos, si cada etapa conserva el 99,9 % de los rostros y deja pasar el 50 % de los falsos, al encadenar 22:
+
+```math
+\text{falsos positivos: } 0{,}5^{22} \approx 2{,}4 \cdot 10^{-7}, \qquad \text{rostros detectados: } 0{,}999^{22} \approx 97{,}8\ \%
+```
+
+#### Búsqueda multiescala: `detectMultiScale`
+
+Los rostros pueden aparecer a cualquier tamaño, así que la búsqueda se repite a varias escalas. OpenCV reduce la imagen por el factor `scaleFactor` en cada paso, formando una pirámide, y recorre cada nivel con la ventana fija de 20 × 20. Con los parámetros del ejemplo (`scaleFactor = 1.1`, `minSize = Size(30, 30)`) y un fotograma de 640 × 480 (estimación analítica):
+
+- La primera escala es $1{,}1^5 \approx 1{,}61$, la primera con la que la ventana ($20 \cdot 1{,}61 \approx 32$ px) alcanza los 30 px de `minSize`. La última es $1{,}1^{33} \approx 23{,}2$, la última con la que la ventana cabe en los 480 px de alto. En total, **29 escalas**.
+- OpenCV avanza la ventana de 2 en 2 píxeles en las escalas menores que 2 y de 1 en 1 en las demás. Sumando todas las posiciones de las 29 escalas salen unas **357.000 ventanas por fotograma**.
+
+`scaleFactor` es el compromiso principal entre velocidad y detección: con 1,05 habría el doble de escalas (más lento, pero detecta mejor los tamaños intermedios), y con 1,3, casi tres veces menos.
+
+`minNeighbors = 4` filtra los falsos positivos: un rostro real activa la detección en varias ventanas solapadas (posiciones y escalas vecinas), mientras que un falso positivo suele aparecer aislado. OpenCV agrupa los rectángulos parecidos y descarta los grupos que no tienen suficientes vecinos.
+
+#### Ecualización del histograma
+
+Antes de detectar, el fotograma pasa a gris y se ecualiza con `equalizeHist`. La transformación $g = \operatorname{round}(255 \cdot \mathrm{CDF}(f))$, explicada en [HistogramBrightnessContrast](../HistogramBrightnessContrast/), reparte los niveles por todo el rango y hace la detección menos sensible a las imágenes oscuras o con poco contraste.
+
+### Coste en la Raspberry Pi
+
+Las cifras son estimaciones analíticas para 640 × 480; la cámara puede entregar otra resolución si no admite la pedida.
+
+- **Memoria por fotograma:** BGR de 640 × 480 (922 KB) y su versión en gris (307 KB). Los 29 niveles de la pirámide suman unas 2,2 veces el área del fotograma (unos 680.000 píxeles), y cada nivel necesita sus imágenes integrales, de 4 bytes por elemento en lugar de 1.
+- **Cómputo:** es el ejemplo más caro de la carpeta. El número de ventanas es proporcional al área de la imagen, así que reducir el fotograma a la mitad (320 × 240) divide el trabajo por unas 4. Subir `minSize` elimina las escalas pequeñas, que son las que más ventanas tienen. La otra gran palanca es limitar la búsqueda a una ROI alrededor del último rostro detectado (ver [RegionOfInterest](../RegionOfInterest/)).
+- **Energía:** el bucle procesa los fotogramas tan rápido como llegan (`waitKey(1)` apenas espera). Si la detección tarda más que el periodo de la cámara, la CPU no descansa nunca mientras el programa está abierto.
 
 ## Descripción del Código
 

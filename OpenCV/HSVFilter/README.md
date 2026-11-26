@@ -21,6 +21,12 @@
     - [Resultado esperado](#resultado-esperado)
     - [Verificación](#verificación)
   - [Teoría de Visión Embebida](#teoría-de-visión-embebida)
+    - [Problema que resuelve](#problema-que-resuelve)
+    - [Fundamentos](#fundamentos)
+      - [Del cubo RGB al cono HSV](#del-cubo-rgb-al-cono-hsv)
+      - [HSV en OpenCV con 8 bits](#hsv-en-opencv-con-8-bits)
+      - [Máscaras binarias](#máscaras-binarias)
+    - [Coste en la Raspberry Pi](#coste-en-la-raspberry-pi)
   - [Descripción del Código](#descripción-del-código)
   - [Funciones OpenCV utilizadas](#funciones-opencv-utilizadas)
   - [Limitaciones conocidas](#limitaciones-conocidas)
@@ -109,10 +115,74 @@ Desde `build/`:
 
 ## Teoría de Visión Embebida
 
-<!-- FASE 4: problema que resuelve, fundamentos y restricciones de memoria, cómputo y energía, con cifras medidas en la Raspberry Pi. -->
+### Problema que resuelve
 
-> [!NOTE]
-> Sección en preparación.
+El mismo que [RGBFilter](../RGBFilter/), separar los píxeles rojos, verdes y azules, pero de forma robusta frente a los cambios de iluminación y sin clasificar como color los grises, los blancos y las sombras.
+
+### Fundamentos
+
+#### Del cubo RGB al cono HSV
+
+HSV describe el color con tres magnitudes cercanas a cómo lo percibimos:
+
+- **Tono** (H, *hue*): qué color es, como un ángulo en la rueda de colores (0° rojo, 120° verde, 240° azul).
+- **Saturación** (S): cuánto se aleja del gris (0 = gris, máximo = color puro).
+- **Valor** (V): cuánta luz tiene (0 = negro).
+
+Con $R, G, B \in [0, 1]$, $V = \max(R, G, B)$, $m = \min(R, G, B)$ y $\Delta = V - m$:
+
+```math
+S = \begin{cases} \Delta / V & \text{si } V > 0 \\ 0 & \text{si } V = 0 \end{cases}
+\qquad
+H = \begin{cases}
+60^\circ \cdot \dfrac{G - B}{\Delta} & \text{si } V = R \\[6pt]
+60^\circ \cdot \left(2 + \dfrac{B - R}{\Delta}\right) & \text{si } V = G \\[6pt]
+60^\circ \cdot \left(4 + \dfrac{R - G}{\Delta}\right) & \text{si } V = B
+\end{cases}
+```
+
+(si $H$ sale negativo se le suman 360°; si $\Delta = 0$ el píxel es gris y el tono no está definido). Geométricamente equivale a mirar el cubo RGB a lo largo de la diagonal de los grises: el hexágono que se ve es la rueda de tonos, la distancia a la diagonal es la saturación y la altura a lo largo de ella, el valor.
+
+La propiedad que interesa es que **el tono no depende de la cantidad de luz**. Oscurecer un objeto multiplica $R$, $G$ y $B$ por el mismo factor $k$: $V$ y $\Delta$ se multiplican por $k$, pero los cocientes que definen $H$ y $S$ no cambian. Es una propiedad del modelo ideal; en una cámara real, la corrección gamma y el balance de blancos la cumplen solo de forma aproximada, por eso los rangos tienen cierto margen.
+
+#### HSV en OpenCV con 8 bits
+
+Un ángulo de 0° a 360° no cabe en un `uchar`, así que `cvtColor(..., COLOR_BGR2HSV)` guarda $H/2$ (de 0 a 179) y escala $S$ y $V$ a 0–255. Los rangos del código equivalen a:
+
+| Salida | H en OpenCV | Tono real | S y V |
+|---|---|---|---|
+| Rojo | 0–10 y 160–179 | 0°–20° y 320°–358° | ≥ 100 |
+| Verde | 35–85 | 70°–170° | ≥ 100 |
+| Azul | 100–130 | 200°–260° | ≥ 100 |
+
+- El rojo necesita dos rangos porque está justo donde la rueda de tonos se cierra (0° = 360°).
+- $S \ge 100$ y $V \ge 100$ (un 39 % del máximo) descartan los grises, los blancos y las sombras, que es lo que [RGBFilter](../RGBFilter/) no podía hacer.
+- Ejemplos: el amarillo puro da $H = 30$ y no entra en ningún rango; un rojo apagado como $(R, G, B) = (180, 60, 60)$ da $(H, S, V) = (0, 170, 180)$ y sí se clasifica como rojo.
+
+#### Máscaras binarias
+
+`inRange` comprueba, para cada píxel, si los tres canales están dentro de sus límites $[L_c, U_c]$:
+
+```math
+M(x, y) = \begin{cases} 255 & \text{si } L_c \le I_c(x, y) \le U_c \text{ para } c \in \{H, S, V\} \\ 0 & \text{en otro caso} \end{cases}
+```
+
+La unión de los dos rangos del rojo es un OR píxel a píxel (`maskRojo1 | maskRojo2`). `bitwise_and(image, image, salida, mascara)` copia la imagen original solo donde la máscara vale 255; como `salida` se crea en esa misma llamada, OpenCV la inicializa a cero y el resto queda en negro.
+
+Una máscara de 1 byte por píxel es el resultado habitual de una segmentación. A partir de ella se puede contar el área del objeto (`countNonZero`), buscar sus contornos (`findContours`) o calcular su centro (`moments`), que es lo que hace un seguidor de objetos por color.
+
+### Coste en la Raspberry Pi
+
+| Matriz | Tamaño |
+|---|---|
+| `image` (BGR) | 1,08 MB |
+| `imageHSV` | 1,08 MB |
+| 5 máscaras de 1 canal (`maskRojo1`, `maskRojo2`, `maskRojo`, `maskVerde`, `maskAzul`) | 5 × 360 KB = 1,8 MB |
+| 3 salidas BGR (`rojo`, `verde`, `azul`) | 3 × 1,08 MB = 3,24 MB |
+| **Total** | **≈ 7,2 MB** |
+
+- **Cómputo:** el paso caro es `cvtColor`, que por cada píxel calcula un máximo, un mínimo y dos divisiones. Para imágenes de 8 bits, OpenCV sustituye las divisiones por tablas precalculadas y procesa varios píxeles a la vez con NEON. `inRange`, `|` y `bitwise_and` son comparaciones y operaciones lógicas por bytes, también vectorizadas. A diferencia de [RGBFilter](../RGBFilter/), el código del ejemplo no tiene ninguna rama por píxel.
+- **Memoria:** si solo interesa la máscara (para contar píxeles o buscar contornos), no hace falta crear las tres imágenes de salida, que son casi la mitad de la memoria del programa.
 
 ## Descripción del Código
 

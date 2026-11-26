@@ -21,6 +21,12 @@
     - [Resultado esperado](#resultado-esperado)
     - [Verificación](#verificación)
   - [Teoría de Visión Embebida](#teoría-de-visión-embebida)
+    - [Problema que resuelve](#problema-que-resuelve)
+    - [Fundamentos](#fundamentos)
+      - [ROI rectangular: una vista, no una copia](#roi-rectangular-una-vista-no-una-copia)
+      - [ROI de forma arbitraria: máscaras](#roi-de-forma-arbitraria-máscaras)
+      - [Máscara frente a recorte](#máscara-frente-a-recorte)
+    - [Coste en la Raspberry Pi](#coste-en-la-raspberry-pi)
   - [Descripción del Código](#descripción-del-código)
   - [Funciones OpenCV utilizadas](#funciones-opencv-utilizadas)
   - [Limitaciones conocidas](#limitaciones-conocidas)
@@ -111,10 +117,64 @@ ls roi_image_*.jpg
 
 ## Teoría de Visión Embebida
 
-<!-- FASE 4: problema que resuelve, fundamentos y restricciones de memoria, cómputo y energía, con cifras medidas en la Raspberry Pi. -->
+### Problema que resuelve
 
-> [!NOTE]
-> Sección en preparación.
+Rara vez interesa toda la imagen: una matrícula ocupa un rectángulo, el carril de una carretera un trapecio, la pieza que se inspecciona un círculo. Procesar solo la **región de interés** (ROI) reduce el trabajo en proporción a su área y evita que el resto de la escena produzca detecciones falsas. En un sistema embebido es la forma más directa de ganar velocidad.
+
+### Fundamentos
+
+#### ROI rectangular: una vista, no una copia
+
+Un rectángulo $(x_0, y_0, w, h)$ dentro de la imagen se representa con otra cabecera de `Mat` que apunta al mismo búfer de píxeles (ver la estructura de `cv::Mat` en [HelloWorld](../HelloWorld/)):
+
+```math
+\text{data}_{\text{ROI}} = \text{data} + y_0 \cdot \text{step} + x_0 \cdot C, \qquad \text{step}_{\text{ROI}} = \text{step}
+```
+
+`image(r)` solo calcula ese puntero y conserva el `step` de la imagen original para saltar de una fila a la siguiente. Es O(1) en tiempo y en memoria, sea cual sea el tamaño del recorte, y cualquier función que reciba la ROI procesa solo sus $w \cdot h$ píxeles. Tiene dos consecuencias:
+
+- La ROI **comparte** los píxeles con la imagen: escribir en `imCrop` modifica `image`. Para separarlas hace falta `imCrop.clone()`.
+- Salvo que ocupe filas completas, la ROI no es continua en memoria (`isContinuous()` devuelve `false`), porque entre el final de una de sus filas y el principio de la siguiente está el resto de la fila de la imagen. Las funciones de OpenCV lo tienen en cuenta y la recorren fila a fila.
+
+#### ROI de forma arbitraria: máscaras
+
+Para las formas que no son rectángulos se usa una **máscara**: una imagen de 1 canal $m(x, y) \in \{0, 255\}$, del tamaño de la original, en la que la ROI son los píxeles distintos de cero. `image.copyTo(salida, mascara)` aplica:
+
+```math
+g(x, y) = \begin{cases} f(x, y) & \text{si } m(x, y) \neq 0 \\ g(x, y) \ \text{(sin cambios)} & \text{si } m(x, y) = 0 \end{cases}
+```
+
+Por eso las salidas se crean antes con `Mat::zeros`: lo que la máscara no cubre se queda en negro. La máscara se dibuja **rasterizando** la figura, es decir, decidiendo qué píxeles quedan dentro:
+
+- **Rombo** (`fillConvexPoly`): se recorre la imagen por filas (*scanline*). En un polígono convexo, cada fila corta el contorno en dos puntos como mucho, y se pintan los píxeles entre ellos. Por eso es más rápido que `fillPoly`, que admite polígonos cóncavos y tiene que ordenar todos los cortes de cada fila.
+- **Rectángulo** (`rectangle` con grosor `-1`): los $(x, y)$ con $x_0 \le x < x_0 + w$ e $y_0 \le y < y_0 + h$.
+- **Círculo** (`circle` con grosor `-1`): los $(x, y)$ con $(x - c_x)^2 + (y - c_y)^2 \le r^2$.
+
+En `avatares.png` (800 × 450 = 360.000 píxeles), las tres máscaras ocupan:
+
+| ROI | Definición | Píxeles | Fracción |
+|---|---|---|---|
+| Rombo | diagonales de 400 × 225 | 45.401 | 12,6 % |
+| Rectángulo | 400 × 225, centrado | 90.000 | 25 % |
+| Círculo | radio 112 (el 25 % de 450, truncado) | 39.381 | 10,9 % |
+
+El área teórica del rombo es la mitad del producto de sus diagonales, $400 \cdot 225 / 2 = 45.000$, y la del círculo $\pi \cdot 112^2 \approx 39.408$. La diferencia con lo medido son los píxeles del contorno, que la rasterización cuenta enteros o no cuenta.
+
+#### Máscara frente a recorte
+
+Las tres máscaras cubren como mucho un cuarto de la imagen, pero no ahorran cómputo: `copyTo` con máscara recorre los 360.000 píxeles, y cada salida es una imagen completa de 1,08 MB, casi toda negra. La máscara **selecciona** píxeles; solo el recorte **reduce** el trabajo. Para que una ROI de forma arbitraria abarate el procesado, se combinan las dos: se procesa solo el rectángulo que la envuelve (`boundingRect` del polígono) como vista, y la máscara se recorta a ese mismo rectángulo.
+
+### Coste en la Raspberry Pi
+
+| Matriz | Tamaño |
+|---|---|
+| `image` (BGR) | 1,08 MB |
+| `imCrop` | 0 bytes de píxeles (vista sobre `image`) |
+| 3 máscaras de 1 canal | 3 × 360 KB = 1,08 MB |
+| 3 salidas BGR | 3 × 1,08 MB = 3,24 MB |
+| **Total** | **≈ 5,4 MB** |
+
+Cada `imwrite` añade el coste de codificar un JPEG (ver [LoadImage](../LoadImage/)) y de escribirlo en la tarjeta SD. Dentro de un bucle conviene evitarlo: además de lento, desgasta la tarjeta, que admite un número limitado de escrituras.
 
 ## Descripción del Código
 

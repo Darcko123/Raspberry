@@ -21,6 +21,14 @@
     - [Resultado esperado](#resultado-esperado)
     - [Verificación](#verificación)
   - [Teoría de Visión Embebida](#teoría-de-visión-embebida)
+    - [Problema que resuelve](#problema-que-resuelve)
+    - [Fundamentos](#fundamentos)
+      - [1. Suavizado](#1-suavizado)
+      - [2. Gradiente](#2-gradiente)
+      - [3. Supresión de no máximos](#3-supresión-de-no-máximos)
+      - [4. Umbral con histéresis](#4-umbral-con-histéresis)
+      - [Escala de los umbrales](#escala-de-los-umbrales)
+    - [Coste en la Raspberry Pi](#coste-en-la-raspberry-pi)
   - [Descripción del Código](#descripción-del-código)
   - [Funciones OpenCV utilizadas](#funciones-opencv-utilizadas)
   - [Limitaciones conocidas](#limitaciones-conocidas)
@@ -110,10 +118,66 @@ Desde `build/`:
 
 ## Teoría de Visión Embebida
 
-<!-- FASE 4: problema que resuelve, fundamentos y restricciones de memoria, cómputo y energía, con cifras medidas en la Raspberry Pi. -->
+### Problema que resuelve
 
-> [!NOTE]
-> Sección en preparación.
+El Laplaciano ([LaplacianFilter](../LaplacianFilter/)) marca los bordes como franjas gruesas de brillo variable y deja pasar mucho ruido. Lo que suelen necesitar las etapas siguientes (buscar contornos, rectas o formas) es otra cosa: un mapa **binario**, con bordes de **un píxel** de ancho, continuos y sin respuestas falsas. Eso es lo que produce el detector de Canny.
+
+### Fundamentos
+
+John Canny (1986) planteó la detección de bordes como un problema de optimización con tres criterios:
+
+1. **Buena detección:** perder pocos bordes reales y marcar pocos falsos.
+2. **Buena localización:** que el borde detectado esté lo más cerca posible del real.
+3. **Respuesta única:** un solo píxel por cada borde.
+
+El algoritmo que se deduce de ellos tiene cuatro etapas.
+
+#### 1. Suavizado
+
+Igual que en el Laplaciano, primero se reduce el ruido con un filtro Gaussiano ([GaussianFilter](../GaussianFilter/)). En este ejemplo se hace fuera de `Canny`, con `GaussianBlur` de 3×3 y σ = 3. El último argumento de `Canny` (`3`) no es un suavizado, aunque el comentario del código lo llame así: es el tamaño del *kernel* de Sobel de la etapa siguiente.
+
+#### 2. Gradiente
+
+La primera derivada en cada dirección se calcula con los *kernels* de Sobel, que derivan en una dirección y suavizan en la otra:
+
+```math
+K_x = \begin{bmatrix} -1 & 0 & 1 \\ -2 & 0 & 2 \\ -1 & 0 & 1 \end{bmatrix}, \qquad
+K_y = \begin{bmatrix} -1 & -2 & -1 \\ 0 & 0 & 0 \\ 1 & 2 & 1 \end{bmatrix}, \qquad
+G_x = K_x * f, \quad G_y = K_y * f
+```
+
+El vector $(G_x, G_y)$ es el **gradiente**: apunta hacia donde la intensidad crece más deprisa y es perpendicular al borde. Su módulo mide la fuerza del borde y su ángulo, la orientación:
+
+```math
+\left| \nabla f \right| \approx |G_x| + |G_y|, \qquad \theta = \operatorname{atan2}(G_y, \, G_x)
+```
+
+OpenCV usa por defecto la norma L1 ($|G_x| + |G_y|$) porque evita la raíz cuadrada. Con `L2gradient = true` usaría la norma euclídea $\sqrt{G_x^2 + G_y^2}$, más precisa y más cara.
+
+#### 3. Supresión de no máximos
+
+El gradiente de un borde real ocupa varios píxeles de ancho. Para quedarse con uno solo, el ángulo $\theta$ se redondea a una de cuatro direcciones (0°, 45°, 90° o 135°) y cada píxel se compara con sus dos vecinos **en la dirección del gradiente**, es decir, a uno y otro lado del borde. Si no es mayor que los dos, se descarta. Queda una línea de un píxel sobre la cresta del gradiente.
+
+#### 4. Umbral con histéresis
+
+Para decidir qué crestas son bordes se usan dos umbrales, `cannyLow` ($T_L$) y `cannyHigh` ($T_H$):
+
+| Módulo del gradiente | Clasificación |
+|---|---|
+| Mayor o igual que $T_H$ | **Borde fuerte**: se acepta siempre |
+| Entre $T_L$ y $T_H$ | **Borde débil**: se acepta solo si está conectado (con vecindad de 8) a un borde fuerte, directamente o a través de otros débiles |
+| Menor que $T_L$ | Se descarta |
+
+Con un único umbral habría que elegir entre cortar los bordes reales donde se debilitan o aceptar ruido. Con dos, un borde que empieza en un tramo fuerte se sigue por los tramos débiles conectados, y las respuestas aisladas del ruido, que no llegan a fuertes, desaparecen. Canny recomendaba una relación $T_H : T_L$ de entre 2:1 y 3:1; los valores iniciales del ejemplo (150 y 50) están en 3:1.
+
+#### Escala de los umbrales
+
+Los umbrales se comparan con el módulo del gradiente, no con la intensidad de los píxeles. Con Sobel de 3×3 sobre una imagen de 8 bits, $|G_x|$ puede llegar a $4 \cdot 255 = 1020$, y en `avatares.png`, después del suavizado, el máximo de $|G_x| + |G_y|$ es 644. Como los *trackbars* llegan solo a 255, permiten explorar la parte baja del rango, la de los bordes más débiles: solo el 1,6 % de los píxeles supera 255.
+
+### Coste en la Raspberry Pi
+
+- **Memoria:** la original en BGR (1,08 MB) y tres imágenes de un canal (gris, suavizada y bordes, 3 × 360 KB), unos 2,2 MB, más los búferes internos de `Canny` para el gradiente.
+- **Cómputo y energía:** el bucle llama a `Canny` y a los cuatro `imshow` cada 30 ms, unas 33 veces por segundo, aunque nadie toque los *trackbars*, y repinta cuatro ventanas con imágenes que no han cambiado. En una Pi alimentada con batería, eso es consumo continuo para un resultado constante. Lo eficiente sería recalcular solo cuando cambia un umbral, en el *callback* del *trackbar* como hace [HistogramBrightnessContrast](../HistogramBrightnessContrast/), y dejar la CPU en reposo con `waitKey(0)`.
 
 ## Descripción del Código
 

@@ -21,6 +21,12 @@
     - [Resultado esperado](#resultado-esperado)
     - [Verificación](#verificación)
   - [Teoría de Visión Embebida](#teoría-de-visión-embebida)
+    - [Problema que resuelve](#problema-que-resuelve)
+    - [Fundamentos](#fundamentos)
+      - [La imagen digital](#la-imagen-digital)
+      - [`cv::Mat`, la estructura central de OpenCV](#cvmat-la-estructura-central-de-opencv)
+      - [Cabeceras frente a biblioteca](#cabeceras-frente-a-biblioteca)
+    - [Coste en la Raspberry Pi](#coste-en-la-raspberry-pi)
   - [Descripción del Código](#descripción-del-código)
   - [Funciones OpenCV utilizadas](#funciones-opencv-utilizadas)
   - [Limitaciones conocidas](#limitaciones-conocidas)
@@ -104,10 +110,47 @@ Desde `build/`:
 
 ## Teoría de Visión Embebida
 
-<!-- FASE 4: problema que resuelve, fundamentos y restricciones de memoria, cómputo y energía, con cifras medidas en la Raspberry Pi. -->
+### Problema que resuelve
 
-> [!NOTE]
-> Sección en preparación.
+Antes de procesar una sola imagen hay que comprobar la cadena de herramientas: que el compilador encuentra las cabeceras de OpenCV, que el enlazador encuentra sus bibliotecas y que el programa resultante arranca en la Raspberry Pi. Este ejemplo hace solo esa comprobación, sin cámara, sin ventanas y sin archivos, así que cualquier fallo es de la instalación y no del código.
+
+### Fundamentos
+
+#### La imagen digital
+
+Una imagen digital es una función de intensidad $f(x, y)$ que se ha **muestreado** en una rejilla de $M \times N$ puntos (los píxeles) y **cuantificado** a un número finito de niveles. Con 8 bits por muestra hay $2^8 = 256$ niveles, de 0 (negro) a 255 (blanco). Una imagen a color guarda 3 muestras por píxel, una por canal.
+
+- El **muestreo** fija la resolución espacial: el detalle más pequeño que se puede representar.
+- La **cuantificación** fija la resolución de intensidad: cuántos tonos se distinguen.
+
+Las dos fijan también la memoria que ocupa la imagen, que es lo primero que se agota en un sistema embebido:
+
+```math
+\text{bytes} = M \cdot N \cdot C \cdot \text{bytes por muestra}
+```
+
+#### `cv::Mat`, la estructura central de OpenCV
+
+Todos los ejemplos de esta carpeta trabajan con `cv::Mat`, que separa dos cosas:
+
+- **La cabecera**, de unas decenas de bytes: filas, columnas, tipo (`CV_8UC3` = 8 bits sin signo y 3 canales), el *stride* `step` (bytes entre el comienzo de una fila y el de la siguiente) y un puntero `data` a los píxeles.
+- **El búfer de datos**, que comparten todas las cabeceras que lo apuntan. Un contador de referencias lo libera cuando ya no lo usa ninguna.
+
+Los píxeles se guardan fila a fila (*row-major*) y con los canales intercalados (B, G, R, B, G, R, …), así que el canal $c$ del píxel $(x, y)$ está en:
+
+```math
+\text{data} + y \cdot \text{step} + x \cdot C + c
+```
+
+Por eso `Mat b = a;` es O(1): copia la cabecera y suma una referencia, pero las dos variables ven los mismos píxeles. Una copia real necesita `clone()` o `copyTo()`. [RegionOfInterest](../RegionOfInterest/) usa esta separación para recortar una imagen sin copiarla.
+
+#### Cabeceras frente a biblioteca
+
+`CV_VERSION` es una macro de `opencv2/core/version.hpp`: el preprocesador la sustituye por una cadena al **compilar**. Lo que imprime el programa es, por tanto, la versión de las cabeceras, no la de la biblioteca `libopencv_core.so` que el enlazador dinámico carga al **ejecutar**. Coinciden mientras se compile y se ejecute con la misma instalación. Si hace falta distinguirlas, `cv::getVersionString()` devuelve la versión de la biblioteca.
+
+### Coste en la Raspberry Pi
+
+El programa solo enlaza `opencv_core` y no reserva ninguna imagen, así que su único coste es arrancar: el enlazador dinámico carga `libopencv_core` y sus dependencias, y el programa termina. Sirve de referencia para los demás ejemplos: el `RSS máx` que da la [Verificación](#verificación) es la memoria mínima de un programa con OpenCV en ese sistema, y lo que los demás midan por encima es lo que cuestan sus imágenes y sus ventanas.
 
 ## Descripción del Código
 

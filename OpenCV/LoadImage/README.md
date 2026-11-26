@@ -21,6 +21,12 @@
     - [Resultado esperado](#resultado-esperado)
     - [Verificación](#verificación)
   - [Teoría de Visión Embebida](#teoría-de-visión-embebida)
+    - [Problema que resuelve](#problema-que-resuelve)
+    - [Fundamentos](#fundamentos)
+      - [Archivo frente a imagen en memoria](#archivo-frente-a-imagen-en-memoria)
+      - [Qué hace `imread`](#qué-hace-imread)
+      - [De la matriz a la pantalla](#de-la-matriz-a-la-pantalla)
+    - [Coste en la Raspberry Pi](#coste-en-la-raspberry-pi)
   - [Descripción del Código](#descripción-del-código)
   - [Funciones OpenCV utilizadas](#funciones-opencv-utilizadas)
   - [Limitaciones conocidas](#limitaciones-conocidas)
@@ -101,10 +107,43 @@ Desde `build/`:
 
 ## Teoría de Visión Embebida
 
-<!-- FASE 4: problema que resuelve, fundamentos y restricciones de memoria, cómputo y energía, con cifras medidas en la Raspberry Pi. -->
+### Problema que resuelve
 
-> [!NOTE]
-> Sección en preparación.
+Una imagen se guarda en disco comprimida y en un formato concreto (PNG, JPEG, …), pero los algoritmos necesitan una matriz de píxeles sin comprimir en memoria. Este ejemplo muestra el paso de uno a otro, la **decodificación**, y el camino de la matriz hasta la pantalla.
+
+### Fundamentos
+
+#### Archivo frente a imagen en memoria
+
+`avatares.png` ocupa 505 KB en disco y 1,08 MB una vez decodificada. La diferencia es la compresión, que cada formato hace de forma distinta:
+
+- **PNG** comprime **sin pérdidas**. Cada fila pasa por un filtro predictivo que sustituye cada byte por su diferencia con un vecino (el de la izquierda, el de arriba, su media, …), lo que deja muchos valores cercanos a cero. El resultado se comprime con DEFLATE (LZ77 seguido de un código de Huffman). Al decodificar se recupera exactamente el original.
+- **JPEG** comprime **con pérdidas**. Pasa la imagen a YCbCr (brillo y dos componentes de color), suele reducir la resolución del color porque el ojo es menos sensible a él que al brillo, divide la imagen en bloques de 8×8, aplica a cada uno la transformada discreta del coseno (DCT) y cuantifica con más fuerza las frecuencias altas. Ocupa menos, pero cada vez que se guarda pierde detalle y aparecen artefactos en los bloques. No conviene usarlo para resultados intermedios ni para máscaras.
+
+#### Qué hace `imread`
+
+1. Reconoce el formato por la firma de los primeros bytes del archivo, no por la extensión. Por eso el antiguo `avatares.jpg`, que en realidad era un PNG, se cargaba sin problemas.
+2. Decodifica el contenido a una matriz de píxeles.
+3. La convierte al formato pedido. Con `IMREAD_COLOR` el resultado es siempre `CV_8UC3` (3 canales de 8 bits) en orden **BGR**. `avatares.png` tiene 4 canales (RGBA), así que el canal alfa (la transparencia) se descarta. `IMREAD_UNCHANGED` lo conservaría (`CV_8UC4`) e `IMREAD_GRAYSCALE` daría un solo canal.
+
+El orden BGR es una herencia de los primeros años de OpenCV y coincide con el de los mapas de bits BMP. Las bibliotecas que esperan RGB, como la mayoría de las redes neuronales, necesitan antes `cvtColor(img, img, COLOR_BGR2RGB)`.
+
+#### De la matriz a la pantalla
+
+`imshow` no dibuja en el momento: entrega la imagen al *backend* gráfico (GTK en Raspberry Pi OS) y deja pendiente el repintado. Quien atiende los eventos de la interfaz es `waitKey`: repinta las ventanas, procesa el ratón y el teclado, y devuelve la tecla pulsada. Sin una llamada a `waitKey`, la ventana no llega a mostrarse; con `waitKey(0)`, el programa queda bloqueado hasta que se pulse una tecla.
+
+### Coste en la Raspberry Pi
+
+| Representación de `avatares.png` | Tamaño |
+|---|---|
+| Archivo PNG en disco | 505 KB |
+| `IMREAD_COLOR`: 800 × 450 × 3 bytes | 1.080.000 B ≈ 1,08 MB |
+| `IMREAD_UNCHANGED`: 800 × 450 × 4 bytes | 1,44 MB |
+| `IMREAD_GRAYSCALE`: 800 × 450 × 1 byte | 360 KB |
+
+- La memoria crece con el área de la imagen. Un fotograma completo de la Camera Module 3 (4608 × 2592, 12 MP) ocupa 4608 × 2592 × 3 ≈ 35,8 MB en BGR: en una Pi Zero 2W, con 512 MB compartidos con la GPU y el sistema, unas pocas copias bastan para quedarse sin memoria.
+- Si solo hace falta una versión pequeña, `IMREAD_REDUCED_COLOR_2`, `_4` u `_8` reducen la imagen al cargarla. Con JPEG el decodificador escala directamente en el dominio de la DCT y se ahorra la mayor parte del trabajo; con PNG decodifica la imagen entera y la reduce después, así que solo ahorra la memoria del resultado.
+- DEFLATE se descomprime de forma secuencial, así que la decodificación de un PNG usa un solo núcleo de la CPU.
 
 ## Descripción del Código
 

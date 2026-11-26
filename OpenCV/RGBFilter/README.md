@@ -21,6 +21,12 @@
     - [Resultado esperado](#resultado-esperado)
     - [Verificación](#verificación)
   - [Teoría de Visión Embebida](#teoría-de-visión-embebida)
+    - [Problema que resuelve](#problema-que-resuelve)
+    - [Fundamentos](#fundamentos)
+      - [El modelo RGB](#el-modelo-rgb)
+      - [Clasificación por canal dominante](#clasificación-por-canal-dominante)
+      - [Por qué RGB separa mal los colores](#por-qué-rgb-separa-mal-los-colores)
+    - [Coste en la Raspberry Pi](#coste-en-la-raspberry-pi)
   - [Descripción del Código](#descripción-del-código)
   - [Funciones OpenCV utilizadas](#funciones-opencv-utilizadas)
   - [Limitaciones conocidas](#limitaciones-conocidas)
@@ -109,10 +115,53 @@ Desde `build/`:
 
 ## Teoría de Visión Embebida
 
-<!-- FASE 4: problema que resuelve, fundamentos y restricciones de memoria, cómputo y energía, con cifras medidas en la Raspberry Pi. -->
+### Problema que resuelve
 
-> [!NOTE]
-> Sección en preparación.
+Separar los píxeles de una imagen según su color dominante. Es la forma más simple de **segmentación por color**, que en visión embebida se usa para seguir objetos de un color conocido (una pelota, una marca, una línea en el suelo) sin necesidad de un detector costoso.
+
+### Fundamentos
+
+#### El modelo RGB
+
+RGB es un modelo **aditivo**: cada color se forma sumando luz roja, verde y azul, igual que los subpíxeles de una pantalla o los filtros de Bayer que hay sobre el sensor de la cámara. Con 8 bits por canal, cada píxel es un punto del cubo $[0, 255]^3$. El negro está en el origen, el blanco en $(255, 255, 255)$ y todos los grises sobre la diagonal $R = G = B$.
+
+#### Clasificación por canal dominante
+
+El programa asigna cada píxel al canal cuyo valor es **estrictamente** mayor que los otros dos:
+
+```math
+\text{clase}(x, y) = \arg\max_{c \,\in\, \{R, G, B\}} I_c(x, y)
+```
+
+Geométricamente, los planos $R = G$, $R = B$ y $G = B$ dividen el cubo en tres regiones, una por canal, que se tocan en la diagonal de los grises. Los píxeles que caen **sobre** uno de esos planos, es decir, los que empatan en el máximo, quedan en negro en las tres salidas. Además de los grises, esto incluye colores puros como el amarillo $(R, G, B) = (255, 255, 0)$, el cian y el magenta.
+
+#### Por qué RGB separa mal los colores
+
+En RGB, el brillo y el color están repartidos entre los tres canales: al oscurecer un objeto rojo bajan a la vez sus tres componentes. Una regla que solo compara canales no puede separar esas dos magnitudes:
+
+- **No mira la saturación**: un gris casi perfecto como $(R, G, B) = (101, 100, 100)$ se clasifica como rojo.
+- **No mira la intensidad**: un píxel casi negro como $(3, 1, 1)$ también es rojo, así que el ruido del sensor en las sombras se reparte entre las tres salidas.
+
+En `avatares.png`, la regla asigna el 54 % de los píxeles al azul (194.444 de 360.000), el 33 % al rojo y el 11 % al verde; solo empata el 1,8 %. Con la misma imagen, [HSVFilter](../HSVFilter/), que exige una saturación y un brillo mínimos, se queda con 56.428 píxeles azules, 15.481 rojos y 342 verdes.
+
+Sin salir de RGB, la mejora clásica es la **cromaticidad normalizada**, que divide cada canal entre la suma de los tres y elimina así la intensidad:
+
+```math
+r = \frac{R}{R + G + B}, \qquad g = \frac{G}{R + G + B}, \qquad b = 1 - r - g
+```
+
+La solución habitual es cambiar a un espacio de color que separe el tono del brillo, como hace [HSVFilter](../HSVFilter/).
+
+### Coste en la Raspberry Pi
+
+- **Memoria:** la original y las tres salidas, del mismo tamaño y tipo: 4 × 1,08 MB = 4,32 MB. `Mat::zeros` además escribe ceros en las tres salidas (3,24 MB) antes del bucle, y la rama `else` vuelve a escribir ceros donde ya los había.
+- **Cómputo:** 360.000 píxeles, con hasta 6 comparaciones y una escritura por píxel. El número de operaciones es pequeño; lo que limita la velocidad es la forma del bucle. Cada píxel toma un camino del `if` que depende de sus datos, y el compilador no puede convertir esas ramas en instrucciones vectoriales. Las funciones de OpenCV, en cambio, usan NEON, cuyos registros de 128 bits procesan 16 bytes por instrucción. La misma clasificación sin ramas, sobre la matriz completa, sería:
+
+  ```cpp
+  std::vector<Mat> bgr;
+  split(image, bgr);                                    // 3 matrices de 1 canal
+  Mat esRojo = (bgr[2] > bgr[1]) & (bgr[2] > bgr[0]);   // 255 donde domina R
+  ```
 
 ## Descripción del Código
 
@@ -140,7 +189,7 @@ El programa ([`RGBFilter.cpp`](RGBFilter.cpp)) sigue estos pasos:
 
 ## Limitaciones conocidas
 
-- El recorrido con `at<>` comprueba los índices en cada acceso y no aprovecha las instrucciones vectoriales (NEON) de la Raspberry Pi. Es didáctico, pero bastante más lento que las operaciones de OpenCV sobre la matriz completa (`split`, `compare`, `max`).
+- El recorrido píxel a píxel con `at<>` y ramas `if` no aprovecha las instrucciones vectoriales (NEON) de la Raspberry Pi. Es didáctico, pero bastante más lento que las operaciones de OpenCV sobre la matriz completa (`split`, `compare`, `max`).
 - La regla de "canal estrictamente mayor" clasifica como rojo un píxel casi gris como `(100, 100, 101)`. No hay umbral de saturación; el ejemplo [HSVFilter](../HSVFilter/) resuelve esto trabajando en HSV.
 - En caso de error devuelve `-1` (el sistema lo ve como `255`) en lugar de `EXIT_FAILURE`.
 

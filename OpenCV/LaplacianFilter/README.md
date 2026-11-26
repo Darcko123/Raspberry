@@ -21,6 +21,14 @@
     - [Resultado esperado](#resultado-esperado)
     - [Verificación](#verificación)
   - [Teoría de Visión Embebida](#teoría-de-visión-embebida)
+    - [Problema que resuelve](#problema-que-resuelve)
+    - [Fundamentos](#fundamentos)
+      - [Derivadas de una imagen](#derivadas-de-una-imagen)
+      - [El operador Laplaciano](#el-operador-laplaciano)
+      - [Sensibilidad al ruido y suavizado previo](#sensibilidad-al-ruido-y-suavizado-previo)
+      - [Por qué `CV_16S` y `convertScaleAbs`](#por-qué-cv_16s-y-convertscaleabs)
+      - [Paso a escala de grises](#paso-a-escala-de-grises)
+    - [Coste en la Raspberry Pi](#coste-en-la-raspberry-pi)
   - [Descripción del Código](#descripción-del-código)
   - [Funciones OpenCV utilizadas](#funciones-opencv-utilizadas)
   - [Limitaciones conocidas](#limitaciones-conocidas)
@@ -102,10 +110,85 @@ Desde `build/`:
 
 ## Teoría de Visión Embebida
 
-<!-- FASE 4: problema que resuelve, fundamentos y restricciones de memoria, cómputo y energía, con cifras medidas en la Raspberry Pi. -->
+### Problema que resuelve
 
-> [!NOTE]
-> Sección en preparación.
+Detectar **bordes**: los lugares donde la intensidad cambia bruscamente, que suelen coincidir con los contornos de los objetos. Un borde concentra mucha información en pocos píxeles, y por eso es el punto de partida de la detección de formas, la medición y el seguimiento.
+
+### Fundamentos
+
+#### Derivadas de una imagen
+
+Un borde es un cambio rápido de intensidad, así que se detecta con derivadas. En una imagen discreta se aproximan con diferencias finitas entre píxeles vecinos:
+
+```math
+\frac{\partial f}{\partial x} \approx f(x + 1, y) - f(x, y), \qquad
+\frac{\partial^2 f}{\partial x^2} \approx f(x + 1, y) - 2 f(x, y) + f(x - 1, y)
+```
+
+Al atravesar un borde, la primera derivada pasa por un **máximo** y la segunda pasa por **cero**: es positiva a un lado del borde y negativa al otro.
+
+#### El operador Laplaciano
+
+El Laplaciano suma las segundas derivadas en las dos direcciones:
+
+```math
+\nabla^2 f = \frac{\partial^2 f}{\partial x^2} + \frac{\partial^2 f}{\partial y^2}
+```
+
+Es **isótropo**: responde igual a un borde sea cual sea su orientación, con una sola convolución y sin calcular la dirección. Sustituyendo las diferencias finitas se obtiene el *kernel* clásico de 4 vecinos, que OpenCV usa con `ksize = 1`:
+
+```math
+\begin{bmatrix} 0 & 1 & 0 \\ 1 & -4 & 1 \\ 0 & 1 & 0 \end{bmatrix}
+```
+
+Con `ksize = 3`, como en este ejemplo, OpenCV calcula cada segunda derivada con un *kernel* de Sobel, que deriva en una dirección y suaviza con `[1 2 1]` en la otra. La suma de los dos da el *kernel* que se aplica de verdad:
+
+```math
+\underbrace{\begin{bmatrix} 1 & -2 & 1 \\ 2 & -4 & 2 \\ 1 & -2 & 1 \end{bmatrix}}_{\partial^2 / \partial x^2}
++ \underbrace{\begin{bmatrix} 1 & 2 & 1 \\ -2 & -4 & -2 \\ 1 & 2 & 1 \end{bmatrix}}_{\partial^2 / \partial y^2}
+= \begin{bmatrix} 2 & 0 & 2 \\ 0 & -8 & 0 \\ 2 & 0 & 2 \end{bmatrix}
+```
+
+En los dos casos los pesos suman 0: sobre una zona uniforme la salida es 0, y el Laplaciano solo responde a los cambios.
+
+#### Sensibilidad al ruido y suavizado previo
+
+La segunda derivada amplifica las frecuencias altas. En el dominio de la frecuencia, el Laplaciano multiplica cada componente por $-4\pi^2(u^2 + v^2)$: cuanto más fina es una variación, más se refuerza. El ruido del sensor es justo eso, variaciones finas, y el Laplaciano directo da una imagen llena de puntos. Por eso el ejemplo suaviza antes con un filtro Gaussiano ([GaussianFilter](../GaussianFilter/)). Como los dos operadores son lineales, aplicar uno tras otro equivale a convolucionar con un único *kernel*, el **Laplaciano de la Gaussiana** (LoG), que es la base del detector de bordes de Marr y Hildreth:
+
+```math
+\nabla^2 (G_\sigma * f) = (\nabla^2 G_\sigma) * f
+```
+
+#### Por qué `CV_16S` y `convertScaleAbs`
+
+Con el *kernel* `[2 0 2; 0 -8 0; 2 0 2]` y una entrada de 0 a 255, la salida puede ir de $-8 \cdot 255 = -2040$ a $+2040$. En `CV_8U` (0 a 255), los valores negativos se saturarían a 0 y se perdería la mitad de cada borde; `CV_16S` (−32.768 a 32.767) los guarda sin pérdida. Para mostrar el resultado, `convertScaleAbs` vuelve a 8 bits con:
+
+```math
+g(x, y) = \min\left(255, \ \left| \nabla^2 f(x, y) \right| \right)
+```
+
+El valor absoluto hace que los dos lados del borde se vean claros, pero pierde el signo, y con él la posibilidad de buscar los cruces por cero, que es la forma de localizar el borde con precisión de un píxel.
+
+#### Paso a escala de grises
+
+El Laplaciano se calcula sobre un solo canal. `COLOR_BGR2GRAY` combina los tres con los pesos de luminancia de la norma ITU-R BT.601, que reflejan la sensibilidad del ojo humano, mayor al verde que al rojo y mucho mayor que al azul:
+
+```math
+Y = 0{,}299 \, R + 0{,}587 \, G + 0{,}114 \, B
+```
+
+### Coste en la Raspberry Pi
+
+| Matriz | Tamaño |
+|---|---|
+| `imagenOriginal` (BGR, se suaviza sobre sí misma) | 1,08 MB |
+| `grayImage` | 360 KB |
+| `laplacian16S` (2 bytes por píxel) | 720 KB |
+| `laplacianResult` | 360 KB |
+| **Total** | **≈ 2,5 MB** |
+
+- **Orden de las operaciones:** el ejemplo suaviza la imagen a color y después la pasa a gris. La conversión a gris y el filtro Gaussiano son lineales, así que el orden no cambia el resultado (salvo por el redondeo), pero suavizar después de convertir procesa 1 canal en lugar de 3: la tercera parte del trabajo del suavizado.
+- **Cómputo:** el *kernel* `[2 0 2; 0 -8 0; 2 0 2]` tiene 5 coeficientes distintos de cero, así que el Laplaciano cuesta unas 5 multiplicaciones y sumas por píxel, unos 1,8 millones en total para los 360.000 píxeles en gris.
 
 ## Descripción del Código
 

@@ -21,6 +21,13 @@
     - [Resultado esperado](#resultado-esperado)
     - [Verificación](#verificación)
   - [Teoría de Visión Embebida](#teoría-de-visión-embebida)
+    - [Problema que resuelve](#problema-que-resuelve)
+    - [Fundamentos](#fundamentos)
+      - [El histograma](#el-histograma)
+      - [Brillo y contraste: una transformación lineal](#brillo-y-contraste-una-transformación-lineal)
+      - [Las fórmulas del ejemplo](#las-fórmulas-del-ejemplo)
+      - [Relación con la ecualización](#relación-con-la-ecualización)
+    - [Coste en la Raspberry Pi](#coste-en-la-raspberry-pi)
   - [Descripción del Código](#descripción-del-código)
   - [Funciones OpenCV utilizadas](#funciones-opencv-utilizadas)
   - [Limitaciones conocidas](#limitaciones-conocidas)
@@ -107,10 +114,73 @@ Desde `build/`:
 
 ## Teoría de Visión Embebida
 
-<!-- FASE 4: problema que resuelve, fundamentos y restricciones de memoria, cómputo y energía, con cifras medidas en la Raspberry Pi. -->
+### Problema que resuelve
 
-> [!NOTE]
-> Sección en preparación.
+Ver cómo se reparten las intensidades de una imagen y corregir su exposición: una foto subexpuesta, sobreexpuesta o con poco contraste. Es el ajuste más barato que existe, una operación por píxel, y el primer paso para entender por qué un algoritmo funciona con una iluminación y falla con otra.
+
+### Fundamentos
+
+#### El histograma
+
+El histograma de una imagen en gris de 8 bits cuenta cuántos píxeles tienen cada nivel de intensidad:
+
+```math
+h(k) = \#\{ (x, y) : f(x, y) = k \}, \quad k = 0, \dots, 255, \qquad p(k) = \frac{h(k)}{M \cdot N}
+```
+
+Normalizado, $p(k)$ es la probabilidad de que un píxel tomado al azar tenga el nivel $k$. El histograma no dice dónde está cada píxel, solo cuántos hay de cada nivel, pero su forma revela la exposición:
+
+- Concentrado a la izquierda: imagen oscura. A la derecha: imagen clara.
+- Estrecho: poco contraste, la imagen usa pocos de los 256 niveles disponibles.
+- Con picos en 0 o en 255: zonas saturadas, cuya información se ha perdido.
+
+#### Brillo y contraste: una transformación lineal
+
+Ajustar el brillo y el contraste es una **operación puntual**: cada píxel de salida depende solo del píxel de entrada en la misma posición:
+
+```math
+g(x, y) = \operatorname{sat}\big( a \cdot f(x, y) + b \big), \qquad \operatorname{sat}(v) = \min\big(255, \max(0, \operatorname{round}(v))\big)
+```
+
+- $b$ (brillo) desplaza el histograma a la izquierda o a la derecha.
+- $a$ (contraste) lo estira ($a > 1$) o lo comprime ($a < 1$).
+- $\operatorname{sat}$ es la saturación que aplica `convertTo` al volver a `CV_8U`: todo lo que queda fuera del rango se acumula en 0 o en 255.
+
+El nivel $k$ de la entrada pasa al nivel $a k + b$ de la salida. Al estirar, niveles consecutivos de la entrada caen separados en la salida y aparecen niveles vacíos entre ellos (el histograma toma forma de peine): no se crea información, solo se reparte la que había. Al comprimir, varios niveles de entrada caen en el mismo nivel de salida y ya no se pueden separar.
+
+#### Las fórmulas del ejemplo
+
+Los *trackbars* van de 0 a 200 y el código les resta 100, así que el brillo $\beta$ y el contraste $c$ van de −100 a +100. Con contraste positivo:
+
+```math
+\delta = 1{,}27 \, c, \qquad a = \frac{255}{255 - 2\delta}, \qquad b = a \, (\beta - \delta)
+\quad \Rightarrow \quad g = a \, (f + \beta - \delta)
+```
+
+El intervalo de entrada $[\delta - \beta, \ 255 - \delta - \beta]$ se estira hasta ocupar todo $[0, 255]$, y lo que queda fuera se satura. En el extremo, $c = 100$ da $\delta = 127$ y $a = 255$: la imagen queda prácticamente en blanco y negro, como con un umbral. Con contraste negativo o nulo:
+
+```math
+\delta = -1{,}28 \, c, \qquad a = \frac{256 - 2\delta}{255}, \qquad b = a \beta + \delta
+\quad \Rightarrow \quad g = a \, (f + \beta) + \delta
+```
+
+Ahora es el rango de salida el que se reduce, a $[\delta, \ 256 - \delta]$ para $\beta = 0$. En el extremo, $c = -100$ da $\delta = 128$ y $a = 0$: toda la imagen queda en el gris 128.
+
+En la posición neutra (los dos *trackbars* en 100), el código toma esta segunda rama con $\delta = 0$, así que $a = 256 / 255 \approx 1{,}004$ en lugar de 1: los niveles a partir de 128 suben uno (128 pasa a 129). Es la diferencia de 1 nivel que se menciona en la [Verificación](#verificación).
+
+#### Relación con la ecualización
+
+Una transformación lineal desplaza y estira el histograma, pero no cambia su forma. La **ecualización del histograma** (`equalizeHist`, que usa [FaceDetect](../FaceDetect/)) aplica en cambio una función no lineal, la distribución acumulada, que reparte los niveles para que el histograma resultante sea aproximadamente plano:
+
+```math
+g = \operatorname{round}\left( 255 \sum_{j=0}^{f} p(j) \right)
+```
+
+### Coste en la Raspberry Pi
+
+- **Memoria:** la imagen en gris (360 KB), el resultado `dst` (360 KB) y la imagen del histograma, de 512 × 400 × 3 = 614 KB. El histograma en sí son 256 valores `float`: 1 KB.
+- **Cómputo:** cada movimiento de un *trackbar* recorre la imagen dos veces: `convertTo` hace una multiplicación y una suma por píxel (360.000 en total) y `calcHist` un incremento por píxel. Todo ocurre dentro del *callback*, así que mientras no se toca nada el programa no consume CPU: es el patrón contrario al bucle de [CannyFilter](../CannyFilter/).
+- **Tablas de consulta:** una operación puntual sobre 8 bits solo puede dar 256 resultados distintos, así que se puede precalcular en una tabla de 256 entradas y aplicar con `LUT`: cada píxel cuesta una lectura en lugar de una multiplicación en coma flotante. Es la técnica habitual para corregir brillo, contraste o gamma en tiempo real.
 
 ## Descripción del Código
 
