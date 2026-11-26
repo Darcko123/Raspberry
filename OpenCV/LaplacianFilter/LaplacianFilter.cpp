@@ -1,34 +1,37 @@
-#include "opencv2/imgproc.hpp"    // Operaciones de procesamiento de imagen
-#include "opencv2/imgcodecs.hpp"  // Funciones para lectura/escritura de imágenes
-#include "opencv2/highgui.hpp"    // Funciones para interfaz gráfica (ventanas)
-#include <iostream>               // Para salida de mensajes de error
+/**
+ * @file LaplacianFilter.cpp
+ *
+ * @brief Detecta los bordes de avatares.png con el operador Laplaciano.
+ *
+ * @author Daniel Ruiz
+ * @date Abril 29, 2025
+ */
 
-using namespace std;              // Espacio de nombres estándar
-using namespace cv;               // Espacio de nombres de OpenCV
+#include <iostream>              // cerr
+#include <opencv2/core.hpp>      // Mat, convertScaleAbs
+#include <opencv2/imgproc.hpp>   // GaussianBlur, cvtColor, Laplacian
+#include <opencv2/imgcodecs.hpp> // imread
+#include <opencv2/highgui.hpp>   // imshow, waitKey
 
-int main(int argc, char** argv)
+using namespace std;
+using namespace cv;
+
+int main()
 {
     // =============================================
-    // Declaración de variables y configuración inicial
+    // Configuración
     // =============================================
-    Mat imagenOriginal, grayImage, laplacianResult;
-    
-    // Parámetros para el operador Laplaciano
-    const int kernel_size = 3;    // Tamaño del kernel (3x3 es común para Laplaciano)
-    const int scale = 1;          // Factor de escala para los valores del derivado
-    const int delta = 0;          // Valor delta añadido a los resultados
-    const int ddepth = CV_16S;    // Profundidad de salida (16-bit signed para preservar bordes negativos)
-    
-    const char* window_name = "Filtro Laplaciano - Detección de Bordes";
+    const int kernelSize = 3;   // Tamaño del kernel (3x3 es común para Laplaciano)
+    const int scale = 1;        // Factor de escala para los valores del derivado
+    const int delta = 0;        // Valor delta añadido a los resultados
+    const int ddepth = CV_16S;  // Profundidad de salida (16-bit signed para preservar bordes negativos)
 
     // =============================================
     // Carga y verificación de la imagen
     // =============================================
-    imagenOriginal = imread("avatares.png", IMREAD_COLOR);
-    
-    if(imagenOriginal.empty()) {
+    Mat image = imread("avatares.png", IMREAD_COLOR);
+    if (image.empty()) {
         cerr << "Error: No se pudo cargar la imagen 'avatares.png'" << endl;
-        cerr << "Verifique que la imagen existe en el directorio correcto" << endl;
         return EXIT_FAILURE;
     }
 
@@ -38,16 +41,18 @@ int main(int argc, char** argv)
     /*
      * Aplicamos un suavizado Gaussiano para reducir el ruido antes de la detección de bordes.
      * Esto es importante porque el Laplaciano es muy sensible al ruido.
-     * Kernel size = 3x3, sigmaX e Y = 0 (calculado automáticamente)
+     * Kernel size = 3x3, sigmaX e Y = 0 (calculado automáticamente).
+     * Se aplica sobre la misma matriz para no reservar otra imagen BGR.
      */
-    GaussianBlur(imagenOriginal, imagenOriginal, 
-                Size(3, 3),  // Tamaño del kernel Gaussiano
-                0,           // Desviación estándar en X (0 = calculada automáticamente)
-                0,           // Desviación estándar en Y
-                BORDER_DEFAULT); // Método de bordes
+    GaussianBlur(image, image,
+                 Size(3, 3),       // Tamaño del kernel Gaussiano
+                 0,                // Desviación estándar en X (0 = calculada automáticamente)
+                 0,                // Desviación estándar en Y
+                 BORDER_DEFAULT);  // Método de bordes
 
     // Convertir a escala de grises (el Laplaciano trabaja sobre imágenes de un solo canal)
-    cvtColor(imagenOriginal, grayImage, COLOR_BGR2GRAY);
+    Mat gray;
+    cvtColor(image, gray, COLOR_BGR2GRAY);
 
     // =============================================
     // Aplicación del operador Laplaciano
@@ -55,39 +60,37 @@ int main(int argc, char** argv)
     /*
      * El operador Laplaciano calcula las segundas derivadas de la imagen,
      * resaltando las regiones de cambio rápido en intensidad (bordes).
-     * 
+     *
      * Parámetros:
      * - ddepth: CV_16S para preservar bordes negativos
-     * - kernel_size: Tamaño del kernel (1, 3, 5 o 7)
+     * - kernelSize: Tamaño del kernel (1, 3, 5 o 7)
      * - scale: Factor de escalamiento opcional
      * - delta: Valor a añadir a los resultados
      * - BORDER_DEFAULT: Método para manejar bordes
      */
     Mat laplacian16S;  // Imagen temporal para el resultado en 16S
-    Laplacian(grayImage, laplacian16S, 
-              ddepth, 
-              kernel_size, 
-              scale, 
-              delta, 
+    Laplacian(gray, laplacian16S,
+              ddepth,
+              kernelSize,
+              scale,
+              delta,
               BORDER_DEFAULT);
 
     // =============================================
-    // Post-procesamiento y visualización
+    // Post-procesamiento
     // =============================================
     /*
      * Convertimos de vuelta a 8-bit sin signo (0-255) usando valores absolutos,
      * ya que el Laplaciano produce valores positivos y negativos.
      */
-    convertScaleAbs(laplacian16S, laplacianResult);
+    Mat laplacian;
+    convertScaleAbs(laplacian16S, laplacian);
 
-    // Mostrar el resultado
-    imshow(window_name, laplacianResult);
-    
-    // Opcional: Guardar el resultado
-    // imwrite("bordes_laplaciano.jpg", laplacianResult);
-
-    // Esperar hasta que el usuario presione una tecla
-    waitKey(0);
+    // =============================================
+    // Visualización
+    // =============================================
+    imshow("Filtro Laplaciano - Detección de bordes", laplacian);
+    waitKey(0);  // Cualquier tecla cierra el programa
 
     return EXIT_SUCCESS;
 }

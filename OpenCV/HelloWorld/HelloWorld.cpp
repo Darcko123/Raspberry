@@ -1,11 +1,20 @@
-#include <opencv2/core.hpp> 
-#include <iostream> 
+/**
+ * @file HelloWorld.cpp
+ *
+ * @brief Comprueba la instalación de OpenCV imprimiendo su versión.
+ *
+ * @author Daniel Ruiz
+ * @date Abril 29, 2025
+ */
 
-using namespace std; 
-using namespace cv; 
+#include <iostream>              // cout
+#include <opencv2/core.hpp>      // CV_VERSION
 
-int main() 
-{ 
+using namespace std;
+using namespace cv;
+
+int main()
+{
     cout << "OpenCV version: " << CV_VERSION << endl;
-    return 0; 
-} 
+    return EXIT_SUCCESS;
+}

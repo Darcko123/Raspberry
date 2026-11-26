@@ -1,36 +1,37 @@
-#include <iostream>               // Para salida de mensajes de error
-#include <opencv2/opencv.hpp>     // Librería principal de OpenCV
-#include "opencv2/highgui.hpp"    // Funciones para interfaz gráfica (ventanas)
-#include "opencv2/imgproc.hpp"    // Operaciones de procesamiento de imagen
-#include "opencv2/imgcodecs.hpp"  // Funciones para lectura/escritura de imágenes
+/**
+ * @file LoadImage.cpp
+ *
+ * @brief Carga avatares.png desde disco y la muestra en una ventana.
+ *
+ * @author Daniel Ruiz
+ * @date Abril 29, 2025
+ */
 
-using namespace std;              // Espacio de nombres estándar
-using namespace cv;               // Espacio de nombres de OpenCV
+#include <iostream>              // cerr
+#include <opencv2/core.hpp>      // Mat
+#include <opencv2/imgcodecs.hpp> // imread
+#include <opencv2/highgui.hpp>   // imshow, waitKey
 
-int main() 
-{ 
-    // =============================================
-    // Carga de la imagen
-    // =============================================
-    //imread puede leer “BMP, DIB, JPEG, JPE, PNG, PBM, PGM, PPM, SR, RAS, and TIFF”
-    Mat img = imread("avatares.png", IMREAD_COLOR);
+using namespace std;
+using namespace cv;
 
+int main()
+{
     // =============================================
-    // Verificación de carga de imagen
+    // Carga y verificación de la imagen
     // =============================================
-    if(img.empty())
-    {
+    // imread puede leer BMP, DIB, JPEG, JPE, PNG, PBM, PGM, PPM, SR, RAS y TIFF
+    Mat image = imread("avatares.png", IMREAD_COLOR);
+    if (image.empty()) {
         cerr << "Error: No se pudo cargar la imagen 'avatares.png'" << endl;
-        cerr << "Verifique que la imagen existe en el directorio correcto" << endl;
         return EXIT_FAILURE;
     }
-    // =============================================
-    // Muestra imagen
-    // =============================================
-    imshow("Imagen avatares", img);
 
-    //Presiona cualquier tecla para salir
-    waitKey(0);
+    // =============================================
+    // Visualización
+    // =============================================
+    imshow("Imagen avatares", image);
+    waitKey(0);  // Cualquier tecla cierra el programa
 
-    return 0;
-} 
+    return EXIT_SUCCESS;
+}

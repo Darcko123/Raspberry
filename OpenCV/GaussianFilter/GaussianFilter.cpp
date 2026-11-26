@@ -1,71 +1,68 @@
-#include <iostream>                // Para entrada/salida estándar y mensajes de error
-#include <opencv2/opencv.hpp>      // Incluye todos los módulos principales de OpenCV
+/**
+ * @file GaussianFilter.cpp
+ *
+ * @brief Suaviza avatares.png con un filtro Gaussiano de 3×3.
+ *
+ * @author Daniel Ruiz
+ * @date Abril 29, 2025
+ */
 
-using namespace std;              // Espacio de nombres estándar
-using namespace cv;               // Espacio de nombres de OpenCV
+#include <iostream>              // cout, cerr
+#include <opencv2/core.hpp>      // Mat
+#include <opencv2/imgproc.hpp>   // GaussianBlur
+#include <opencv2/imgcodecs.hpp> // imread
+#include <opencv2/highgui.hpp>   // imshow, waitKey
 
-int main(int argc, char** argv)
+using namespace std;
+using namespace cv;
+
+int main()
 {
     // =============================================
-    // Declaración de variables y configuración inicial
+    // Configuración
     // =============================================
-    Mat imageOriginal, gaussianResult;  // Matrices para imagen original y resultado
-    
-    // Configuración de la ventana de visualización
-    const char* window_name = "Filtro Gaussiano - Suavizado de Imagen";
-    const int kernelSize = 3;           // Tamaño del kernel (3x3)
+    const int kernelSize = 3;  // Tamaño del kernel (3x3)
 
     // =============================================
     // Carga y verificación de la imagen
     // =============================================
-    imageOriginal = imread("avatares.png", IMREAD_COLOR);  // Cargar imagen a color
-
-    if(imageOriginal.empty()) {
+    Mat image = imread("avatares.png", IMREAD_COLOR);
+    if (image.empty()) {
         cerr << "Error: No se pudo cargar la imagen 'avatares.png'" << endl;
-        cerr << "Verifique que:" << endl;
-        cerr << "1. La imagen existe en el directorio actual" << endl;
-        cerr << "2. El nombre y extensión son correctos" << endl;
-        cerr << "3. Tiene permisos de lectura" << endl;
-        return EXIT_FAILURE;  // Código de error estándar
+        return EXIT_FAILURE;
     }
 
     // =============================================
-    // Aplicación del Filtro Gaussiano
+    // Aplicación del filtro Gaussiano
     // =============================================
     /*
      * El filtro Gaussiano es un suavizado (blur) que:
      * - Reduce ruido y detalles pequeños
      * - Preserva mejor los bordes que un blur promedio
      * - Usa una función de peso Gaussiana (campana de Gauss)
-     * 
+     *
      * Parámetros:
      * 1. Size(3,3): Tamaño del kernel (ancho, alto) - debe ser impar
      * 2. 0: Sigma en X (0 = calculado automáticamente desde kernel size)
      * 3. 0: Sigma en Y (si es 0, usa el mismo valor que sigma X)
      * 4. BORDER_DEFAULT: Método para manejar píxeles en bordes
      */
-    GaussianBlur(imageOriginal,       // Imagen de entrada
-                gaussianResult,       // Imagen de salida
-                Size(kernelSize, kernelSize), // Tamaño del kernel
-                0,                    // Sigma X (0 = auto-calculado)
-                0,                    // Sigma Y
-                BORDER_DEFAULT);      // Tratamiento de bordes
+    Mat blurred;
+    GaussianBlur(image,                         // Imagen de entrada
+                 blurred,                       // Imagen de salida
+                 Size(kernelSize, kernelSize),  // Tamaño del kernel
+                 0,                             // Sigma X (0 = auto-calculado)
+                 0,                             // Sigma Y
+                 BORDER_DEFAULT);               // Tratamiento de bordes
 
     // =============================================
-    // Visualización y guardado de resultados
+    // Visualización
     // =============================================
-    // Mostrar imagen original y resultado
-    imshow("Imagen Original", imageOriginal);
-    imshow(window_name, gaussianResult);
+    imshow("Imagen original", image);
+    imshow("Filtro Gaussiano - Suavizado de imagen", blurred);
 
-    // Opción para guardar el resultado (descomentar para usar)
-    // imwrite("imagen_suavizada_gaussiano.jpg", gaussianResult);
-
-    // Mensaje de ayuda para el usuario
     cout << "Presione cualquier tecla para salir..." << endl;
+    waitKey(0);  // Cualquier tecla cierra el programa
 
-    // Esperar entrada del usuario
-    waitKey(0);
-
-    return EXIT_SUCCESS;  // Indica terminación exitosa
+    return EXIT_SUCCESS;
 }
