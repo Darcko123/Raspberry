@@ -1,0 +1,16 @@
+# Compila los ejemplos de OpenCV/ con OpenCV 4.6 de apt (la misma versión que Raspberry Pi OS Bookworm)
+name: OpenCV
+
+on:
+  push:
+    paths: ['OpenCV/**', 'scripts/opencv-build-all.sh', '.github/workflows/opencv.yml']
+  pull_request:
+    paths: ['OpenCV/**', 'scripts/opencv-build-all.sh', '.github/workflows/opencv.yml']
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libopencv-dev
+      - run: scripts/opencv-build-all.sh
