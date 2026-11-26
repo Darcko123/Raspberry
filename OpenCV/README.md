@@ -35,7 +35,7 @@ En orden de aprendizaje: cada ejemplo usa conceptos de los anteriores.
 | 10 | [FaceDetect](FaceDetect/) | Detectar rostros con un clasificador Haar en cascada | Cámara |
 | 11 | [RoadDetect](RoadDetect/) | Detectar las líneas del carril con Canny y Hough | Cámara |
 
-Los ejemplos con imagen usan [assets/avatares.png](assets/avatares.png), que CMake copia a la carpeta `build/` de cada ejemplo. En [assets/](assets/) también están los tres fotogramas de carretera de referencia de `RoadDetect` (`carretera2_1.jpg`, `carretera3_1.jpg` y `carretera4_1.jpg`); el programa lee la cámara, no los archivos.
+Los ejemplos con imagen usan [assets/avatares.png](assets/avatares.png), que CMake copia a la carpeta `build/` de cada ejemplo. En [assets/](assets/) también están los tres fotogramas de carretera de `RoadDetect` (`carretera2_1.jpg`, `carretera3_1.jpg` y `carretera4_1.jpg`): CMake los copia a su `build/` y el programa los usa si no hay cámara.
 
 ## Estructura
 
