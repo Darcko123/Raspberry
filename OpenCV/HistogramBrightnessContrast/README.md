@@ -182,6 +182,8 @@ g = \operatorname{round}\left( 255 \sum_{j=0}^{f} p(j) \right)
 - **Cómputo:** cada movimiento de un *trackbar* recorre la imagen dos veces: `convertTo` hace una multiplicación y una suma por píxel (360.000 en total) y `calcHist` un incremento por píxel. Todo ocurre dentro del *callback*, así que mientras no se toca nada el programa no consume CPU: es el patrón contrario al bucle de [CannyFilter](../CannyFilter/).
 - **Tablas de consulta:** una operación puntual sobre 8 bits solo puede dar 256 resultados distintos, así que se puede precalcular en una tabla de 256 entradas y aplicar con `LUT`: cada píxel cuesta una lectura en lugar de una multiplicación en coma flotante. Es la técnica habitual para corregir brillo, contraste o gamma en tiempo real.
 
+**Medido** en una Raspberry Pi 5 con OpenCV 4.9 (mediana de 3 ejecuciones, con las ventanas abiertas): `RSS máx` = 42.288 kB, 10,9 MB más que [LoadImage](../LoadImage/), que abre una sola ventana. Las matrices de este ejemplo no llegan a 1,4 MB (la imagen en gris es más pequeña que la de color de LoadImage), así que casi toda la diferencia es de la interfaz: la segunda ventana y los dos *trackbars*.
+
 ## Descripción del Código
 
 El programa ([`HistogramBrightnessContrast.cpp`](HistogramBrightnessContrast.cpp)) se organiza en `main` y una función *callback*:

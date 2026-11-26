@@ -184,6 +184,8 @@ Una máscara de 1 byte por píxel es el resultado habitual de una segmentación.
 - **Cómputo:** el paso caro es `cvtColor`, que por cada píxel calcula un máximo, un mínimo y dos divisiones. Para imágenes de 8 bits, OpenCV sustituye las divisiones por tablas precalculadas y procesa varios píxeles a la vez con NEON. `inRange`, `|` y `bitwise_and` son comparaciones y operaciones lógicas por bytes, también vectorizadas. A diferencia de [RGBFilter](../RGBFilter/), el código del ejemplo no tiene ninguna rama por píxel.
 - **Memoria:** si solo interesa la máscara (para contar píxeles o buscar contornos), no hace falta crear las tres imágenes de salida, que son casi la mitad de la memoria del programa.
 
+**Medido** en una Raspberry Pi 5 con OpenCV 4.9 (mediana de 3 ejecuciones, con las ventanas abiertas): `RSS máx` = 46.032 kB, 14,6 MB más que [LoadImage](../LoadImage/), que carga la misma imagen y abre una sola ventana. Las matrices añaden 6,1 MB; el resto viene de las tres ventanas adicionales.
+
 ## Descripción del Código
 
 El programa ([`HSVFilter.cpp`](HSVFilter.cpp)) sigue estos pasos:

@@ -145,6 +145,8 @@ El orden BGR es una herencia de los primeros años de OpenCV y coincide con el d
 - Si solo hace falta una versión pequeña, `IMREAD_REDUCED_COLOR_2`, `_4` u `_8` reducen la imagen al cargarla. Con JPEG el decodificador escala directamente en el dominio de la DCT y se ahorra la mayor parte del trabajo; con PNG decodifica la imagen entera y la reduce después, así que solo ahorra la memoria del resultado.
 - DEFLATE se descomprime de forma secuencial, así que la decodificación de un PNG usa un solo núcleo de la CPU.
 
+**Medido** en una Raspberry Pi 5 con OpenCV 4.9 (mediana de 3 ejecuciones, con las ventanas abiertas): `RSS máx` = 31.408 kB, unos 21,5 MB más que [HelloWorld](../HelloWorld/). La imagen solo supone 1,08 MB de esa diferencia. Un programa de prueba que solo llama a `imread` ocupa 18.544 kB, y el mismo programa con `imshow` sube a 31.328 kB: cargar las bibliotecas y decodificar la imagen cuesta unos 8,7 MB, y abrir la primera ventana (iniciar GTK) unos 12,8 MB. En un sistema sin pantalla, no abrir ventanas es el mayor ahorro de memoria posible.
+
 ## Descripción del Código
 
 El programa ([`LoadImage.cpp`](LoadImage.cpp)) hace tres pasos:

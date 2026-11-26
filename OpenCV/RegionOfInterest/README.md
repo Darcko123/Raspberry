@@ -176,6 +176,8 @@ Las tres máscaras cubren como mucho un cuarto de la imagen, pero no ahorran có
 
 Cada `imwrite` añade el coste de codificar un JPEG (ver [LoadImage](../LoadImage/)) y de escribirlo en la tarjeta SD. Dentro de un bucle conviene evitarlo: además de lento, desgasta la tarjeta, que admite un número limitado de escrituras.
 
+**Medido** en una Raspberry Pi 5 con OpenCV 4.9 (mediana de 3 ejecuciones, con las ventanas abiertas): `RSS máx` = 33.792 kB con la ventana de `selectROI` abierta, es decir, antes de crear las máscaras. Los ≈ 5,4 MB de matrices y las cuatro ventanas de resultado aparecen después de confirmar la selección, y esa parte no se midió.
+
 ## Descripción del Código
 
 El programa ([`RegionOfInterest.cpp`](RegionOfInterest.cpp)) carga `avatares.png`, guarda su ancho (`cols`) y alto (`rows`), y aplica cuatro métodos uno detrás de otro:

@@ -190,6 +190,8 @@ Y = 0{,}299 \, R + 0{,}587 \, G + 0{,}114 \, B
 - **Orden de las operaciones:** el ejemplo suaviza la imagen a color y después la pasa a gris. La conversión a gris y el filtro Gaussiano son lineales, así que el orden no cambia el resultado (salvo por el redondeo), pero suavizar después de convertir procesa 1 canal en lugar de 3: la tercera parte del trabajo del suavizado.
 - **Cómputo:** el *kernel* `[2 0 2; 0 -8 0; 2 0 2]` tiene 5 coeficientes distintos de cero, así que el Laplaciano cuesta unas 5 multiplicaciones y sumas por píxel, unos 1,8 millones en total para los 360.000 píxeles en gris.
 
+**Medido** en una Raspberry Pi 5 con OpenCV 4.9 (mediana de 3 ejecuciones, con las ventanas abiertas): `RSS máx` = 33.888 kB, 2,5 MB más que [LoadImage](../LoadImage/), que carga la misma imagen y abre también una sola ventana. Las matrices intermedias son 1,44 MB.
+
 ## Descripción del Código
 
 El programa ([`LaplacianFilter.cpp`](LaplacianFilter.cpp)) sigue estos pasos:

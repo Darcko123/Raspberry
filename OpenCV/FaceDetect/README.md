@@ -205,6 +205,8 @@ Las cifras son estimaciones analíticas para 640 × 480; la cámara puede entreg
 - **Cómputo:** es el ejemplo más caro de la carpeta. El número de ventanas es proporcional al área de la imagen, así que reducir el fotograma a la mitad (320 × 240) divide el trabajo por unas 4. Subir `minSize` elimina las escalas pequeñas, que son las que más ventanas tienen. La otra gran palanca es limitar la búsqueda a una ROI alrededor del último rostro detectado (ver [RegionOfInterest](../RegionOfInterest/)).
 - **Energía:** el bucle procesa los fotogramas tan rápido como llegan (`waitKey(1)` apenas espera). Si la detección tarda más que el periodo de la cámara, la CPU no descansa nunca mientras el programa está abierto.
 
+**Sin medir:** la memoria pico no se pudo medir en la Raspberry Pi 5, porque la Pi no tiene cámara conectada y el programa termina con 1 al no poder abrirla.
+
 ## Descripción del Código
 
 El programa ([`FaceDetect.cpp`](FaceDetect.cpp)) se divide en `main` y la función `detectarYMostrar`:

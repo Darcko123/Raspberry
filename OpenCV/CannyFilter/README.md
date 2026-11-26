@@ -179,6 +179,8 @@ Los umbrales se comparan con el módulo del gradiente, no con la intensidad de l
 - **Memoria:** la original en BGR (1,08 MB) y tres imágenes de un canal (gris, suavizada y bordes, 3 × 360 KB), unos 2,2 MB, más los búferes internos de `Canny` para el gradiente.
 - **Cómputo y energía:** el bucle llama a `Canny` y a los cuatro `imshow` cada 30 ms, unas 33 veces por segundo, aunque nadie toque los *trackbars*, y repinta cuatro ventanas con imágenes que no han cambiado. En una Pi alimentada con batería, eso es consumo continuo para un resultado constante. Lo eficiente sería recalcular solo cuando cambia un umbral, en el *callback* del *trackbar* como hace [HistogramBrightnessContrast](../HistogramBrightnessContrast/), y dejar la CPU en reposo con `waitKey(0)`.
 
+**Medido** en una Raspberry Pi 5 con OpenCV 4.9 (mediana de 3 ejecuciones, con las ventanas abiertas): `RSS máx` = 52.128 kB, 20,7 MB más que [LoadImage](../LoadImage/), que carga la misma imagen y abre una sola ventana. Las matrices solo añaden 1,1 MB: el resto son las tres ventanas de imagen adicionales, la ventana `Config` con sus *trackbars* y los búferes internos de `Canny`. Es el ejemplo que más memoria usa de los que se pueden medir sin cámara.
+
 ## Descripción del Código
 
 El programa ([`CannyFilter.cpp`](CannyFilter.cpp)) prepara la imagen una vez y luego entra en un bucle:

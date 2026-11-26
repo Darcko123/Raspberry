@@ -30,6 +30,9 @@
     - [Resultado esperado](#resultado-esperado)
     - [Verificación](#verificación)
   - [Teoría de Visión Embebida](#teoría-de-visión-embebida)
+    - [Problema que resuelve](#problema-que-resuelve)
+    - [Fundamentos](#fundamentos)
+    - [Coste en la Raspberry Pi](#coste-en-la-raspberry-pi)
   - [Descripción del Código](#descripción-del-código)
   - [Funciones OpenCV utilizadas](#funciones-opencv-utilizadas)
   - [Limitaciones conocidas](#limitaciones-conocidas)
@@ -109,10 +112,17 @@ Desde `build/`:
 
 ## Teoría de Visión Embebida
 
-<!-- FASE 4: problema que resuelve, fundamentos y restricciones de memoria, cómputo y energía, con cifras medidas en la Raspberry Pi. -->
+### Problema que resuelve
 
-> [!NOTE]
-> Sección en preparación.
+<Qué problema de visión resuelve el ejemplo y dónde aparece en un sistema embebido.>
+
+### Fundamentos
+
+<Base matemática del algoritmo: fórmulas, *kernels* y por qué funciona. Divídala con encabezados `####`.>
+
+### Coste en la Raspberry Pi
+
+<Memoria de cada matriz, operaciones por píxel y consumo. Marque como estimación lo que no se haya medido.>
 
 ## Descripción del Código
 

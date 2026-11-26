@@ -163,6 +163,8 @@ La solución habitual es cambiar a un espacio de color que separe el tono del br
   Mat esRojo = (bgr[2] > bgr[1]) & (bgr[2] > bgr[0]);   // 255 donde domina R
   ```
 
+**Medido** en una Raspberry Pi 5 con OpenCV 4.9 (mediana de 3 ejecuciones, con las ventanas abiertas): `RSS máx` = 42.608 kB, 11,2 MB más que [LoadImage](../LoadImage/), que carga la misma imagen y abre una sola ventana. Las tres salidas son 3,24 MB; el resto, unos 8 MB, viene de las tres ventanas adicionales (unos 2,7 MB cada una).
+
 ## Descripción del Código
 
 El programa ([`RGBFilter.cpp`](RGBFilter.cpp)) sigue estos pasos:

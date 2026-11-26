@@ -184,6 +184,8 @@ El filtro es, por tanto, un **paso bajo**: atenúa las frecuencias altas (ruido,
 - **Cómputo:** 800 × 450 píxeles × 3 canales = 1,08 millones de muestras. Con el *kernel* separable de 3, son unas 6 multiplicaciones y sumas por muestra, unos 6,5 millones en total. Para imágenes de 8 bits, OpenCV usa aritmética entera de punto fijo en lugar de coma flotante: el resultado es exacto e idéntico en cualquier CPU, y se vectoriza con NEON.
 - Suavizar la imagen a color cuesta el triple que en gris. Si el paso siguiente trabaja en gris, como en [LaplacianFilter](../LaplacianFilter/) y [CannyFilter](../CannyFilter/), conviene convertir antes.
 
+**Medido** en una Raspberry Pi 5 con OpenCV 4.9 (mediana de 3 ejecuciones, con las ventanas abiertas): `RSS máx` = 35.680 kB, 4,3 MB más que [LoadImage](../LoadImage/), que carga la misma imagen y abre una sola ventana: 1,08 MB son el resultado y el resto, la segunda ventana.
+
 ## Descripción del Código
 
 El programa ([`GaussianFilter.cpp`](GaussianFilter.cpp)) sigue estos pasos:
