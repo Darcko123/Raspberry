@@ -49,7 +49,6 @@ int main()
     if (capture.isOpened()) {
         capture.set(CAP_PROP_FRAME_WIDTH, 640);   // Ancho del frame
         capture.set(CAP_PROP_FRAME_HEIGHT, 480);  // Alto del frame
-        capture.set(CAP_PROP_FPS, 60);            // Frames por segundo
         capture.set(CAP_PROP_BRIGHTNESS, 128);    // Brillo (0-255)
         capture.set(CAP_PROP_CONTRAST, 128);      // Contraste (0-255)
         capture >> frame;  // Primer frame: algunas cámaras abren pero no entregan imagen
