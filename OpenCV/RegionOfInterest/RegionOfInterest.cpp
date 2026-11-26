@@ -41,12 +41,17 @@ int main()
      */
     Rect2d roi = selectROI(image);  // Permite al usuario seleccionar un rectángulo
 
-    // Recortamos la imagen usando la ROI seleccionada (vista, sin copia)
-    Mat crop = image(roi);
+    if (roi.empty()) {
+        // selectROI devuelve un rectángulo vacío si se cancela (ESC o tecla c)
+        cerr << "Aviso: selección cancelada, se omite la ROI manual" << endl;
+    } else {
+        // Recortamos la imagen usando la ROI seleccionada (vista, sin copia)
+        Mat crop = image(roi);
 
-    // Mostramos y guardamos la imagen recortada
-    imshow("ROI manual", crop);
-    imwrite("roi_image_target.jpg", crop);
+        // Mostramos y guardamos la imagen recortada
+        imshow("ROI manual", crop);
+        imwrite("roi_image_target.jpg", crop);
+    }
 
     // =============================================
     // 2. ROI poligonal (rombo)

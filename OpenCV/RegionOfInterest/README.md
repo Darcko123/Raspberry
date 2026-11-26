@@ -207,7 +207,7 @@ Cada resultado se muestra con `imshow` y se guarda con `imwrite`. Al final, `wai
 
 ## Limitaciones conocidas
 
-- Si se cancela la selección (tecla `c`) o se confirma sin dibujar nada, `selectROI` devuelve un rectángulo vacío, `image(roi)` produce una `Mat` vacía y `imshow` la rechaza: el programa termina con una excepción de OpenCV.
+- Si se cancela la selección (tecla `c`) o se confirma sin dibujar nada, `selectROI` devuelve un rectángulo vacío: el programa avisa por `cerr`, omite la ROI manual (no muestra ni guarda `roi_image_target.jpg`) y sigue con las otras tres.
 - Las tres máscaras usan proporciones fijas del tamaño de la imagen; no se pueden ajustar sin recompilar.
 
 ## Recursos de aprendizaje
