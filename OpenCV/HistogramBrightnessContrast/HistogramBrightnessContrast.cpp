@@ -21,10 +21,6 @@ using namespace cv;
 // =============================================
 // El callback de los trackbars no recibe datos propios, así que el estado es global.
 
-// Posición de los trackbars (rango 0-200, 100 = valor neutral)
-int brightnessTrackbar = 100;  // Brillo
-int contrastTrackbar = 100;    // Contraste
-
 Mat image;  // Imagen original en escala de grises
 Mat hist;   // Matriz para almacenar el histograma
 
@@ -38,9 +34,9 @@ Mat hist;   // Matriz para almacenar el histograma
  */
 static void updateBrightnessContrast(int, void*)
 {
-    // Ajustamos los valores para que 100 sea neutral (0 en la fórmula)
-    int brightness = brightnessTrackbar - 100;  // Rango: -100 a +100
-    int contrast = contrastTrackbar - 100;      // Rango: -100 a +100
+    // Trackbars con rango 0-200: restamos 100 para que 100 sea neutral (0 en la fórmula)
+    int brightness = getTrackbarPos("Brillo", "Imagen original") - 100;     // Rango: -100 a +100
+    int contrast = getTrackbarPos("Contraste", "Imagen original") - 100;    // Rango: -100 a +100
 
     // Cálculo de parámetros para la transformación
     /*
@@ -127,8 +123,11 @@ int main()
     namedWindow("Imagen original", WINDOW_AUTOSIZE);
     namedWindow("Histograma", WINDOW_AUTOSIZE);
 
-    createTrackbar("Brillo", "Imagen original", &brightnessTrackbar, 200, updateBrightnessContrast);
-    createTrackbar("Contraste", "Imagen original", &contrastTrackbar, 200, updateBrightnessContrast);
+    // Sin puntero de valor (obsoleto): la posición inicial se fija con setTrackbarPos
+    createTrackbar("Brillo", "Imagen original", nullptr, 200, updateBrightnessContrast);
+    createTrackbar("Contraste", "Imagen original", nullptr, 200, updateBrightnessContrast);
+    setTrackbarPos("Brillo", "Imagen original", 100);
+    setTrackbarPos("Contraste", "Imagen original", 100);
 
     // =============================================
     // Visualización

@@ -189,7 +189,7 @@ g = \operatorname{round}\left( 255 \sum_{j=0}^{f} p(j) \right)
 El programa ([`HistogramBrightnessContrast.cpp`](HistogramBrightnessContrast.cpp)) se organiza en `main` y una función *callback*:
 
 1. **`main`:** carga la imagen con `imread("avatares.png", IMREAD_GRAYSCALE)`, crea las ventanas, registra los dos *trackbars* con `updateBrightnessContrast` como *callback*, la llama una vez para dibujar el estado inicial y espera con `waitKey(0)`. Mientras espera, `waitKey` procesa los eventos de los *trackbars*.
-2. **Parámetros de la transformación** (`updateBrightnessContrast`): los valores se centran en 0 (`brillo = brightnessTrackbar − 100`, `contraste = contrastTrackbar − 100`) y se calculan `a` (ganancia) y `b` (desplazamiento), según la fórmula de Werner D. Streidt:
+2. **Parámetros de la transformación** (`updateBrightnessContrast`): los valores se centran en 0 (`brillo = getTrackbarPos("Brillo", …) − 100`, `contraste = getTrackbarPos("Contraste", …) − 100`) y se calculan `a` (ganancia) y `b` (desplazamiento), según la fórmula de Werner D. Streidt:
    - **Contraste > 0:** `δ = 127·c/100`, `a = 255 / (255 − 2δ)`, `b = a·(brillo − δ)`. Como `a > 1`, el rango `[δ, 255 − δ]` se estira hasta `[0, 255]` y aumenta el contraste.
    - **Contraste ≤ 0:** `δ = −128·c/100`, `a = (256 − 2δ) / 255`, `b = a·brillo + δ`. Como `a ≤ 1`, todo el rango se comprime hacia el centro y disminuye el contraste.
 3. **Aplicación:** `image.convertTo(dst, CV_8U, a, b)` calcula `a·src + b` y satura el resultado a 0–255.
@@ -202,6 +202,7 @@ El programa ([`HistogramBrightnessContrast.cpp`](HistogramBrightnessContrast.cpp
 | `imread` | imgcodecs | Carga `avatares.png` en escala de grises |
 | `namedWindow` | highgui | Crea las ventanas antes de añadir los *trackbars* |
 | `createTrackbar` | highgui | Crea los controles **Brillo** y **Contraste** |
+| `setTrackbarPos` / `getTrackbarPos` | highgui | Fijan la posición inicial y leen el valor de los controles |
 | `Mat::convertTo` | core | Aplica `a·src + b` con saturación a 8 bits |
 | `calcHist` | imgproc | Calcula el histograma de 256 niveles |
 | `normalize` | core | Escala el histograma a la altura de la ventana |
@@ -211,9 +212,8 @@ El programa ([`HistogramBrightnessContrast.cpp`](HistogramBrightnessContrast.cpp
 
 ## Limitaciones conocidas
 
-- El estado se guarda en variables globales (`image`, `hist`, `brightnessTrackbar`, `contrastTrackbar`) porque el *callback* no recibe datos propios (`userdata` es `nullptr`).
+- El estado se guarda en variables globales (`image` y `hist`) porque el *callback* no recibe datos propios (`userdata` es `nullptr`).
 - El histograma se normaliza a su propio máximo en cada cambio, así que la altura de la curva es relativa: no sirve para comparar el número absoluto de píxeles entre dos ajustes.
-- Con OpenCV 4.6 y posteriores se muestra el aviso `createTrackbar ... Using 'value' pointer is unsafe and deprecated`, porque se pasa la variable por puntero. No afecta al funcionamiento.
 
 ## Recursos de aprendizaje
 
