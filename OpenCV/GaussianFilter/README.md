@@ -18,12 +18,12 @@ Este repositorio contiene un ejemplo de cómo aplicar un filtro Gaussiano a una 
     rm -rf CMakeFiles CMakeCache.txt
     cmake -DCMAKE_CXX_FLAGS="" .
     make
-    ./FiltroRGB
+    ./GaussianFilter
     ```
     ### CMakeLists.txt 
     ```bash
     cmake_minimum_required(VERSION 3.12)
-    project(FiltroGaussiano LANGUAGES CXX)
+    project(GaussianFilter LANGUAGES CXX)
 
     # Establecer flags del compilador (puede ser útil en la Raspberry Pi Zero 2W)
     set(CMAKE_CXX_FLAGS "" CACHE STRING "Flags for C++ compiler" FORCE)
@@ -41,9 +41,9 @@ Este repositorio contiene un ejemplo de cómo aplicar un filtro Gaussiano a una 
     endif()
 
     # Crear ejecutable
-    add_executable(FiltroGaussiano FiltroGaussiano.cpp)
-    target_include_directories(FiltroGaussiano PRIVATE ${OpenCV_INCLUDE_DIRS})
-    target_link_libraries(FiltroGaussiano PRIVATE ${OpenCV_LIBS} ${WIRINGPI_LIB})
+    add_executable(GaussianFilter GaussianFilter.cpp)
+    target_include_directories(GaussianFilter PRIVATE ${OpenCV_INCLUDE_DIRS})
+    target_link_libraries(GaussianFilter PRIVATE ${OpenCV_LIBS} ${WIRINGPI_LIB})
     ```
 2. Asegúrate de tener una imagen llamada `avatares.jpg` en el mismo directorio que los archivos. Puedes reemplazar este nombre por el de tu imagen
    

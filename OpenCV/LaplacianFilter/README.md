@@ -19,12 +19,12 @@ Este programa demuestra el uso del operador Laplaciano para la detección de bor
     rm -rf CMakeFiles CMakeCache.txt
     cmake -DCMAKE_CXX_FLAGS="" .
     make
-    ./FiltroLaplaciano
+    ./LaplacianFilter
    ```
    ### CMakeLists.txt
    ```bash
    cmake_minimum_required(VERSION 3.12)
-   project(FiltroLaplaciano LANGUAGES CXX)
+   project(LaplacianFilter LANGUAGES CXX)
 
    # Establecer flags del compilador (puede ser útil en la Raspberry Pi Zero 2W)
    set(CMAKE_CXX_FLAGS "" CACHE STRING "Flags for C++ compiler" FORCE)
@@ -42,9 +42,9 @@ Este programa demuestra el uso del operador Laplaciano para la detección de bor
    endif()
 
    # Crear ejecutable
-   add_executable(FiltroLaplaciano FiltroLaplaciano.cpp)
-   target_include_directories(FiltroLaplaciano PRIVATE ${OpenCV_INCLUDE_DIRS})
-   target_link_libraries(FiltroLaplaciano PRIVATE ${OpenCV_LIBS} ${WIRINGPI_LIB})
+   add_executable(LaplacianFilter LaplacianFilter.cpp)
+   target_include_directories(LaplacianFilter PRIVATE ${OpenCV_INCLUDE_DIRS})
+   target_link_libraries(LaplacianFilter PRIVATE ${OpenCV_LIBS} ${WIRINGPI_LIB})
    ```
 
 2. Dar permisos

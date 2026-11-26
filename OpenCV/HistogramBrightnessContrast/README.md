@@ -19,12 +19,12 @@ Aplicación interactiva que permite ajustar brillo y contraste de una imagen en 
     rm -rf CMakeFiles CMakeCache.txt
     cmake -DCMAKE_CXX_FLAGS="" .
     make
-    ./Histograma
+    ./HistogramBrightnessContrast
    ```
    ### CMakeLists.txt
    ```bash
    cmake_minimum_required(VERSION 3.12)
-   project(Histograma LANGUAGES CXX)
+   project(HistogramBrightnessContrast LANGUAGES CXX)
 
    # Establecer flags del compilador (puede ser útil en la Raspberry Pi Zero 2W)
    set(CMAKE_CXX_FLAGS "" CACHE STRING "Flags for C++ compiler" FORCE)
@@ -42,9 +42,9 @@ Aplicación interactiva que permite ajustar brillo y contraste de una imagen en 
    endif()
 
    # Crear ejecutable
-   add_executable(Histograma Histograma.cpp)
-   target_include_directories(Histograma PRIVATE ${OpenCV_INCLUDE_DIRS})
-   target_link_libraries(Histograma PRIVATE ${OpenCV_LIBS} ${WIRINGPI_LIB})
+   add_executable(HistogramBrightnessContrast HistogramBrightnessContrast.cpp)
+   target_include_directories(HistogramBrightnessContrast PRIVATE ${OpenCV_INCLUDE_DIRS})
+   target_link_libraries(HistogramBrightnessContrast PRIVATE ${OpenCV_LIBS} ${WIRINGPI_LIB})
    ```
 
 2. Dar permisos

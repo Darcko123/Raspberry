@@ -9,7 +9,7 @@ endif()
 find_package(OpenCV 4 REQUIRED COMPONENTS core imgproc highgui objdetect videoio)
 message(STATUS "OpenCV version: ${OpenCV_VERSION}")
 
-add_executable(${PROJECT_NAME} FaceDetect.cpp)
+add_executable(${PROJECT_NAME} ${PROJECT_NAME}.cpp)
 target_link_libraries(${PROJECT_NAME} PRIVATE ${OpenCV_LIBS})
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_11)
 

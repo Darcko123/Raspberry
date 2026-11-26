@@ -19,12 +19,12 @@ Este repositorio contiene un ejemplo de cómo aplicar un filtro RGB a una imagen
     rm -rf CMakeFiles CMakeCache.txt
     cmake -DCMAKE_CXX_FLAGS="" .
     make
-    ./FiltroRGB
+    ./RGBFilter
     ```
     ### CMakeLists.txt 
     ```bash
     cmake_minimum_required(VERSION 3.12)
-    project(FiltroRGB LANGUAGES CXX)
+    project(RGBFilter LANGUAGES CXX)
 
     # Establecer flags del compilador (puede ser útil en la Raspberry Pi Zero 2W)
     set(CMAKE_CXX_FLAGS "" CACHE STRING "Flags for C++ compiler" FORCE)
@@ -42,9 +42,9 @@ Este repositorio contiene un ejemplo de cómo aplicar un filtro RGB a una imagen
     endif()
 
     # Crear ejecutable
-    add_executable(FiltroRGB FiltroRGB.cpp)
-    target_include_directories(FiltroRGB PRIVATE ${OpenCV_INCLUDE_DIRS})
-    target_link_libraries(FiltroRGB PRIVATE ${OpenCV_LIBS} ${WIRINGPI_LIB})
+    add_executable(RGBFilter RGBFilter.cpp)
+    target_include_directories(RGBFilter PRIVATE ${OpenCV_INCLUDE_DIRS})
+    target_link_libraries(RGBFilter PRIVATE ${OpenCV_LIBS} ${WIRINGPI_LIB})
     ```
 2. Asegúrate de tener una imagen llamada avatares.jpg en el mismo directorio que los archivos. Puedes reemplazar este nombre por el de tu imagen
    

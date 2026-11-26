@@ -5,5 +5,5 @@ build/
 CMakeFiles/
 CMakeCache.txt
 
-# Imágenes que genera RegionOfInterest(ROI)
+# Imágenes que genera RegionOfInterest
 roi_image_*.jpg

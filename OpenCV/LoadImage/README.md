@@ -18,13 +18,13 @@ Este repositorio contiene un ejemplo sencillo de cómo cargar una imagen utiliza
     rm -rf CMakeFiles CMakeCache.txt
     cmake -DCMAKE_CXX_FLAGS="" .
     make
-    ./Imagen
+    ./LoadImage
     ```
 
     ### CMakeLists.txt
     ```bash
     cmake_minimum_required(VERSION 3.12)
-    project(Imagen LANGUAGES CXX)
+    project(LoadImage LANGUAGES CXX)
 
     # Establecer flags del compilador (puede ser útil en la Raspberry Pi Zero 2W)
     set(CMAKE_CXX_FLAGS "" CACHE STRING "Flags for C++ compiler" FORCE)
@@ -42,9 +42,9 @@ Este repositorio contiene un ejemplo sencillo de cómo cargar una imagen utiliza
     endif()
 
     # Crear ejecutable
-    add_executable(Imagen Imagen.cpp)
-    target_include_directories(Imagen PRIVATE ${OpenCV_INCLUDE_DIRS})
-    target_link_libraries(Imagen PRIVATE ${OpenCV_LIBS} ${WIRINGPI_LIB})
+    add_executable(LoadImage LoadImage.cpp)
+    target_include_directories(LoadImage PRIVATE ${OpenCV_INCLUDE_DIRS})
+    target_link_libraries(LoadImage PRIVATE ${OpenCV_LIBS} ${WIRINGPI_LIB})
     ```
 
 2. Asegúrate de tener una imagen llamada avatares.jpg en el mismo directorio que los archivos. Puedes reemplazar este nombre por el de tu imagen

@@ -19,12 +19,12 @@ Este repositorio contiene un ejemplo completo de cómo trabajar con Regiones de 
     rm -rf CMakeFiles CMakeCache.txt
     cmake -DCMAKE_CXX_FLAGS="" .
     make
-    ./ROI
+    ./RegionOfInterest
    ```
    ### CMakeLists.txt
    ```bash
    cmake_minimum_required(VERSION 3.12)
-   project(ROI LANGUAGES CXX)
+   project(RegionOfInterest LANGUAGES CXX)
 
    # Establecer flags del compilador (puede ser útil en la Raspberry Pi Zero 2W)
    set(CMAKE_CXX_FLAGS "" CACHE STRING "Flags for C++ compiler" FORCE)
@@ -42,9 +42,9 @@ Este repositorio contiene un ejemplo completo de cómo trabajar con Regiones de 
    endif()
 
    # Crear ejecutable
-   add_executable(ROI ROI.cpp)
-   target_include_directories(ROI PRIVATE ${OpenCV_INCLUDE_DIRS})
-   target_link_libraries(ROI PRIVATE ${OpenCV_LIBS} ${WIRINGPI_LIB})
+   add_executable(RegionOfInterest RegionOfInterest.cpp)
+   target_include_directories(RegionOfInterest PRIVATE ${OpenCV_INCLUDE_DIRS})
+   target_link_libraries(RegionOfInterest PRIVATE ${OpenCV_LIBS} ${WIRINGPI_LIB})
    ```
 
 2. Dar permisos
